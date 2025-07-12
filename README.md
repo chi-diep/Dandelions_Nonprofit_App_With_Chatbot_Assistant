@@ -109,7 +109,6 @@ You can use your own data or a provided SQL file.
 Example to load:
 
 ```bash
-Copy code
 psql -U postgres -d Dandelions -f setup.sql
 (Adjust -U user and password as needed.)
 ```
@@ -117,7 +116,6 @@ psql -U postgres -d Dandelions -f setup.sql
 4. Start the Flask Backend
 Run your hybrid RAG + SQL API server:
 ```bash
-Copy code
 python flask_app.py
 This starts on http://localhost:5000 and serves:
 
