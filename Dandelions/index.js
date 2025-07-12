@@ -4,16 +4,17 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import sgMail from '@sendgrid/mail';
 import { Parser } from 'json2csv';
+import path from 'path';
 
 dotenv.config();
 const { Pool } = pkg;
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 
-// set some extra security headers
+// set extra security headers
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -21,7 +22,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// make sure we have a SendGrid key before starting
+// serve your static HTML/CSS/JS from the static folder
+app.use(express.static(path.join(path.resolve(), 'static')));
+
+// check for SendGrid key
 if (!process.env.SENDGRID_API_KEY) {
   console.error("No SENDGRID_API_KEY found in .env. Exiting...");
   process.exit(1);
@@ -29,14 +33,14 @@ if (!process.env.SENDGRID_API_KEY) {
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 console.log('Loaded SendGrid Key:', process.env.SENDGRID_API_KEY.slice(0, 8));
 
-// setup postgres connection pool
+// setup postgres
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL
 });
 
-let currentCodes = {}; // hold MFA codes here as { email: { code, expiresAt } }
+let currentCodes = {}; // holds MFA codes
 
-// every minute, clean up any expired codes
+// clean up expired codes every minute
 setInterval(() => {
   const now = Date.now();
   for (const [email, record] of Object.entries(currentCodes)) {
@@ -44,7 +48,7 @@ setInterval(() => {
   }
 }, 60000);
 
-// endpoint to send an MFA code
+// send MFA code
 app.post('/api/send-code', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email is required" });
@@ -53,11 +57,10 @@ app.post('/api/send-code', async (req, res) => {
   const expiresAt = Date.now() + 10 * 60 * 1000;
   currentCodes[email] = { code, expiresAt };
 
-  // build the HTML email
   const htmlContent = `
   <div style="max-width:600px;margin:auto;font-family:sans-serif;border-radius:10px;overflow:hidden;border:1px solid #e0e0e0;box-shadow:0 4px 20px rgba(0,0,0,0.05);">
     <div style="background:linear-gradient(135deg, #d946ef, #facc15);padding:25px;text-align:center;">
-      <h1 style="color:#fff;font-size:26px;">Welcome to Dandelions 🌷</h1>
+      <h1 style="color:#fff;font-size:26px;">Welcome to Dandelions!</h1>
       <p style="color:#ecf0f1;font-size:14px;">Let’s keep your account secure & our garden blooming</p>
     </div>
     <div style="padding:30px;background:#fff;">
@@ -79,7 +82,7 @@ app.post('/api/send-code', async (req, res) => {
     await sgMail.send({
       to: email,
       from: { email: 'info@dandelions.org', name: 'Dandelions Security Team' },
-      subject: '🌷 Your Dandelions verification code',
+      subject: 'This is your Dandelions verification code',
       html: htmlContent,
       text: `Hi there,\n\nYour one-time Dandelions code is: ${code}\n\nIt expires in 10 minutes.\n\n— Dandelions Team`
     });
@@ -91,7 +94,7 @@ app.post('/api/send-code', async (req, res) => {
   }
 });
 
-// endpoint to verify MFA code
+// verify MFA code
 app.post('/api/verify-code', async (req, res) => {
   const { email, code } = req.body;
   if (!email || !code) return res.status(400).json({ error: "Email and code required" });
@@ -121,7 +124,7 @@ app.post('/api/verify-code', async (req, res) => {
   res.status(401).json({ error: "Invalid code" });
 });
 
-// endpoint for volunteers to sign up
+// volunteer signup
 app.post('/api/signup', async (req, res) => {
   const { name, email, phone, title, date, hours } = req.body;
   console.log(`New signup: ${name} for ${title} on ${date}`);
@@ -168,7 +171,7 @@ app.post('/api/signup', async (req, res) => {
   }
 });
 
-// endpoint to get signups or download as CSV for managers
+// CSV + data endpoints
 app.get('/api/signups', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM signups ORDER BY created_at DESC');
@@ -194,7 +197,6 @@ app.get('/api/signups.csv', async (req, res) => {
   }
 });
 
-// simple endpoints to get shifts, kits, and volunteers data
 app.get('/api/shifts', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM shifts ORDER BY date ASC');
@@ -218,8 +220,7 @@ app.get('/api/kits', async (req, res) => {
 app.get('/api/volunteers', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT 
-        volunteer_id, first_name, last_name, dob, email, address, title
+      SELECT volunteer_id, first_name, last_name, dob, email, address, title
       FROM volunteers
       ORDER BY first_name
     `);
@@ -230,7 +231,7 @@ app.get('/api/volunteers', async (req, res) => {
   }
 });
 
-// health check and default 404
+// health check and fallback
 app.get('/api/health', (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
 });
@@ -239,7 +240,6 @@ app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
 });
 
-// start the server
 app.listen(port, () => {
-  console.log(`Dandelions server running on http://localhost:${port}`);
+  console.log(` Dandelions server running on http://localhost:${port}`);
 });
