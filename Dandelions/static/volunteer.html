@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dandelions - Volunteer With Us</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Handlee&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <style>
+    body {
+      font-family: 'Playfair Display', serif;
+      background: #fdf6e3 url('https://www.transparenttextures.com/patterns/flowers.png') repeat;
+    }
+    .handwritten { font-family: 'Handlee', cursive; }
+    .scrapbook-card {
+      transition: all 0.3s ease;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(3px);
+      border: 2px dashed rgba(219,39,119,0.3);
+      border-radius: 1rem;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.04), 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .scrapbook-card:hover {
+      transform: scale(1.01);
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.05), 0 8px 20px rgba(0,0,0,0.15);
+    }
+    .underline-flourish::after {
+      content: "";
+      display: block;
+      width: 120px;
+      height: 10px;
+      background: url('https://i.imgur.com/JQ3V1L9.png') no-repeat center;
+      background-size: contain;
+      margin: 0.5rem auto 0;
+      animation: drawFlourish 2s ease forwards;
+    }
+    @keyframes drawFlourish {
+      0% { width: 0; opacity: 0; }
+      100% { width: 120px; opacity: 1; }
+    }
+    #petalContainer {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 30;
+      overflow: hidden;
+    }
+    .petal {
+      position: absolute;
+      top: -10px;
+      color: rgba(219,39,119,0.25);
+      animation: fall 7s linear forwards;
+      font-size: 10px;
+    }
+    @keyframes fall {
+      0% { transform: translateY(0) rotate(0deg); opacity:0.8; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity:0; }
+    }
+  </style>
+</head>
+<body class="text-pink-900 relative">
+
+<nav class="flex justify-between items-center px-8 py-6 bg-pink-100 shadow-md">
+  <div class="text-3xl font-bold"><a href="index.html">Dandelions</a></div>
+  <div class="space-x-6 text-lg">
+    <a href="about.html" class="hover:text-pink-600">About</a>
+    <a href="volunteer.html" class="hover:text-pink-600 font-semibold">Volunteer</a>
+    <a href="donor.html" class="hover:text-pink-600">Donate</a>
+    <a href="contact.html" class="hover:text-pink-600">Contact</a>
+  </div>
+</nav>
+
+<div class="max-w-5xl mx-auto p-8 space-y-20">
+
+  <!-- Hero -->
+  <div class="text-center space-y-6" data-aos="fade-up">
+    <h1 class="text-5xl font-bold tracking-wider underline-flourish">Be a Reason Someone Smiles!</h1>
+    <p class="text-2xl max-w-2xl mx-auto leading-relaxed">Every hand that helps at Dandelions writes a new chapter of hope. Join us, and let’s grow kindness together!</p>
+    <a href="#shifts" class="mt-6 inline-block bg-pink-400 hover:bg-pink-500 text-white px-10 py-4 rounded-full shadow-lg transition">See Shifts & Sign Up</a>
+  </div>
+
+  <!-- Volunteer stories -->
+  <div class="space-y-10" data-aos="fade-up">
+    <h2 class="text-4xl font-bold text-center handwritten">Heartfelt Moments</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="scrapbook-card p-6 space-y-4">
+        <p class="text-xl italic">"Helping little Anil with his homework made me feel more needed than I ever imagined. His grin is forever in my heart."</p>
+        <p class="font-bold">— Priya, 23</p>
+      </div>
+      <div class="scrapbook-card p-6 space-y-4">
+        <p class="text-xl italic">"Serving tea to the elders was supposed to be simple. Instead, I left with stories of first loves, war memories, and friendships that still inspire me."</p>
+        <p class="font-bold">— Marcus, 31</p>
+      </div>
+      <div class="scrapbook-card p-6 space-y-4">
+        <p class="text-xl italic">"I thought I was giving my time. Turns out, I received more joy, laughter, and purpose than I could’ve imagined."</p>
+        <p class="font-bold">— Leah, 19</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming shifts zig-zag timeline -->
+  <div id="shifts" class="space-y-8" data-aos="fade-up">
+    <h2 class="text-4xl font-bold text-center handwritten mb-4">Upcoming Shifts</h2>
+    <div class="relative mx-auto max-w-3xl" id="shiftsList"></div>
+  </div>
+
+  <!-- Impact -->
+  <div class="bg-yellow-100 p-10 rounded-3xl shadow-xl text-center" data-aos="fade-up">
+    <h2 class="text-4xl font-bold mb-4 handwritten">Your care touches countless lives.</h2>
+    <p class="text-2xl leading-relaxed">Last week alone, volunteers like you spent <span id="weeklyHours" class="font-bold">0</span> hours spreading joy 🌼</p>
+  </div>
+
+</div>
+
+<footer class="mt-16 bg-pink-100 text-center p-6 rounded-t-3xl shadow-inner">
+  <p class="text-lg">© 2025 Dandelions | info@dandelions.org | (555) 123-4567</p>
+</footer>
+
+<div id="petalContainer"></div>
+<script>
+  function createPetal() {
+    const petal = document.createElement("div");
+    petal.classList.add("petal");
+    petal.style.left = Math.random() * 100 + "vw";
+    petal.style.animationDuration = (5 + Math.random() * 5) + "s";
+    petal.style.fontSize = 8 + Math.random() * 10 + "px";
+    petal.innerHTML = "✿";
+    document.getElementById("petalContainer").appendChild(petal);
+    setTimeout(() => petal.remove(), 10000);
+  }
+  setInterval(createPetal, 400);
+
+  AOS.init({ duration: 1200 });
+
+  async function loadVolunteerPage() {
+    try {
+      const res = await fetch('http://localhost:3000/api/shifts');
+      const shifts = await res.json();
+      const now = new Date();
+      const weekAgo = new Date();
+      weekAgo.setDate(now.getDate() - 7);
+
+      const weekHours = shifts
+        .filter(s => new Date(s.date) > weekAgo)
+        .reduce((sum, s) => sum + parseFloat(s.hours), 0);
+      document.getElementById('weeklyHours').innerText = weekHours.toFixed(0);
+
+      const container = document.getElementById('shiftsList');
+      shifts.slice(0,15).forEach((shift,i) => {
+        const isLeft = i % 2 === 0;
+        const alignClass = isLeft ? "justify-start" : "justify-end";
+        const dotPos = isLeft ? "left-0" : "right-0";
+        const aos = isLeft ? "fade-right" : "fade-left";
+
+        const wrapper = document.createElement('div');
+        wrapper.className = `flex w-full ${alignClass} relative mb-8`;
+        wrapper.setAttribute("data-aos", aos);
+        
+        wrapper.innerHTML = `
+          <div class="absolute ${dotPos} top-5 w-4 h-4 bg-pink-400 border-2 border-white rounded-full shadow"></div>
+          <div class="scrapbook-card p-4 w-[90%] max-w-md">
+            <h3 class="text-lg font-bold handwritten">${shift.title} ${shift.title.includes('Food') ? '🥣' : shift.title.includes('Health') ? '💖' : '🌼'}</h3>
+            <p class="text-xs mt-1"><strong>Date:</strong> ${new Date(shift.date).toLocaleDateString()} | <strong>Hours:</strong> ${shift.hours}</p>
+            <p class="text-xs text-pink-800 mt-1"><strong>📍 Location:</strong> ${shift.location || "Main Center"}</p>
+            <p class="text-xs italic mt-1 text-pink-700">"${shift.description || "Come spread joy and help hands-on!"}"</p>
+            <a href="signup.html?title=${encodeURIComponent(shift.title)}&date=${encodeURIComponent(new Date(shift.date).toLocaleDateString())}&hours=${shift.hours}"
+               class="inline-block mt-2 bg-pink-400 hover:bg-pink-500 text-white px-3 py-1 rounded-full handwritten shadow transition text-sm">
+               Sign Up
+            </a>
+          </div>
+        `;
+        container.appendChild(wrapper);
+      });
+    } catch (err) {
+      console.error('Failed to load volunteer data:', err);
+    }
+  }
+  loadVolunteerPage();
+</script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Dandelions</title>
+  <!-- fonts and tailwind -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Handlee&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css"/>
+  <style>
+    /* custom fonts and paper background */
+    body {
+      font-family: 'Playfair Display', serif;
+      background: #fdf6e3 url('https://www.transparenttextures.com/patterns/notebook.png') repeat;
+    }
+    .handwritten { font-family: 'Handlee', cursive; }
+
+    /* yellow ribbon line on the left */
+    .ribbon {
+      position: absolute; left: 20px; top: 0;
+      width: 6px; height: 100%;
+      background: linear-gradient(#fbbf24, #fcd34d);
+      border-radius: 3px;
+      box-shadow: 0 0 10px rgba(251,191,36,0.4);
+    }
+
+    /* vertical timeline dotted line with little flower spinner */
+    .timeline-entry {
+      position: relative;
+      margin-left: 4rem;
+      padding-left: 2rem;
+      border-left: 3px dotted rgba(219,39,119,0.5);
+    }
+    .timeline-entry::before {
+      content: "✿";
+      position: absolute; left: -1.5rem; top: 0;
+      font-size: 1.5rem; color: rgba(219,39,119,0.7);
+      animation: spinflower 4s linear infinite;
+    }
+    @keyframes spinflower {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* subtle old paper stamp bg on each block */
+    .stamp-bg {
+      background: url('https://www.transparenttextures.com/patterns/old-wall.png') repeat;
+      opacity: 0.1;
+      mix-blend-mode: multiply;
+      border-radius: 1rem;
+    }
+
+    /* polaroid effect on images */
+    .polaroid {
+      background: #fff;
+      padding: 0.5rem;
+      box-shadow: 2px 6px 15px rgba(0,0,0,0.2);
+      transform: rotate(-3deg);
+      transition: transform 0.3s;
+    }
+    .polaroid:hover {
+      transform: rotate(0deg) scale(1.03);
+    }
+
+    /* falling flower petals animation */
+    #petalContainer {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 30;
+    }
+    .petal {
+      position: absolute; top: -10px;
+      color: rgba(219,39,119,0.2);
+      animation: fall 9s linear forwards;
+      font-size: 10px;
+    }
+    @keyframes fall {
+      0% { transform: translateY(0) rotate(0deg); opacity:0.8; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity:0; }
+    }
+  </style>
+</head>
+<body class="text-pink-900 relative">
+
+<!-- nav bar -->
+<nav class="flex justify-between items-center px-8 py-6 bg-pink-100 shadow-md">
+  <div class="text-3xl font-bold"><a href="index.html">Dandelions</a></div>
+  <div class="space-x-6 text-lg">
+    <a href="about.html" class="hover:text-pink-600 font-semibold">About</a>
+    <a href="volunteer.html" class="hover:text-pink-600">Volunteer</a>
+    <a href="donor.html" class="hover:text-pink-600">Donate</a>
+    <a href="contact.html" class="hover:text-pink-600">Contact</a>
+  </div>
+</nav>
+
+<!-- main content timeline -->
+<div class="relative max-w-5xl mx-auto p-10 mt-12 space-y-20">
+  <div class="ribbon"></div>
+
+  <!-- story block 1 -->
+  <div class="timeline-entry stamp-bg p-8" data-aos="fade-right">
+    <h1 class="text-5xl font-bold handwritten mb-4">A Gentle Beginning</h1>
+    <p class="text-xl leading-relaxed max-w-3xl">It all started in a tiny rented house in 2018. A few volunteers, six children, and big dreams. We shared meals, crafted bedtime stories, and created bonds that still bloom today.</p>
+    <div class="mt-6 max-w-sm polaroid">
+      <img src="https://t4.ftcdn.net/jpg/11/36/72/93/360_F_1136729336_VrWICwbp7AoQS0KADUr70xopjE2aPI0P.jpg" alt="Beginning" class="rounded-lg"/>
+    </div>
+  </div>
+
+  <!-- story block 2 -->
+  <div class="timeline-entry stamp-bg p-8" data-aos="fade-right">
+    <h2 class="text-4xl font-bold handwritten mb-3">A Growing Family</h2>
+    <p class="text-xl leading-relaxed max-w-3xl">By 2020, we welcomed elders and differently-abled friends into our family. The laughter of children met the wisdom of age and suddenly, we weren't just a shelter, we were home.</p>
+    <div class="mt-6 max-w-sm polaroid ml-auto mr-8">
+      <img src="https://media.istockphoto.com/id/1533346592/photo/a-disabled-person-in-a-wheelchair-with-a-friend-on-summer-vacation-having-fun-laughing-a-lot.jpg?s=612x612&w=0&k=20&c=q1hbzmdGjnWuivgSjxhPX0XhL3hp7k48X0CSQpefUak=" alt="Growing family" class="rounded-lg"/>
+    </div>
+  </div>
+
+  <!-- story block 3 -->
+  <div class="timeline-entry stamp-bg p-8" data-aos="fade-right">
+    <h2 class="text-4xl font-bold handwritten mb-3">Our Mission</h2>
+    <p class="text-xl leading-relaxed max-w-3xl">To build a safe place where love has no limits. A haven where stories are shared across generations, and every smile plants a seed of hope.</p>
+      <img src="https://volcenter.org/wp-content/uploads/2021/11/katt-yukawa.jpg" alt="Seed" class="rounded-lg"/>
+  </div>
+
+  <!-- story block 4 -->
+  <div class="timeline-entry stamp-bg p-8" data-aos="fade-right">
+    <h2 class="text-4xl font-bold handwritten mb-3">Looking Ahead</h2>
+    <p class="text-xl leading-relaxed max-w-3xl">We dream of a world dotted with places like Dandelions where no one is left behind, and kindness grows wild and free like flowers in spring.</p>
+    <div class="mt-6 max-w-sm polaroid">
+      <img src="https://cdn.aarp.net/content/dam/aarpe/en/home/livable-communities/livable-in-action/info-2016/building-community-bonds-across-generations/_jcr_content/root/container_main/container_body_main/container_body1/container_body_cf/body_one_cf_one/par2/articlecontentfragme/cfimage.coreimg.50.932.jpeg/content/dam/aarp/livable-communities/images-2016/1140-providence-assisted-living-seattle-build-bonds-across-generations.jpg" alt="Future" class="rounded-lg"/>
+    </div>
+  </div>
+
+  <!-- thank you closing note -->
+  <div class="timeline-entry text-center mt-16" data-aos="fade-up">
+    <p class="handwritten text-3xl leading-relaxed max-w-3xl mx-auto">Thank you for believing in tender revolutions of love with us.</p>
+    <p class="handwritten text-3xl mt-4">— The Dandelions Team</p>
+  </div>
+</div>
+
+<!-- footer -->
+<footer class="mt-20 bg-pink-100 text-center p-6 rounded-t-3xl shadow-inner">
+  <p class="text-lg">© 2025 Dandelions | info@dandelions.org | (555) 123-4567</p>
+</footer>
+
+<!-- falling petals -->
+<div id="petalContainer"></div>
+<script>
+  function createPetal() {
+    const petal = document.createElement("div");
+    petal.classList.add("petal");
+    petal.style.left = Math.random() * 100 + "vw";
+    petal.style.animationDuration = (8 + Math.random() * 5) + "s";
+    petal.style.fontSize = 8 + Math.random() * 10 + "px";
+    petal.innerHTML = "✿";
+    document.getElementById("petalContainer").appendChild(petal);
+    setTimeout(() => petal.remove(), 12000);
+  }
+  setInterval(createPetal, 500);
+</script>
+
+<!-- animation on scroll -->
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>AOS.init({ duration: 1200 });</script>
+</body>
+</html>

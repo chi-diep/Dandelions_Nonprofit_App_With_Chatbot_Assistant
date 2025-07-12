@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dandelions Manager Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Handlee&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<style>
+  body {
+    font-family: 'Playfair Display', serif;
+    background: #fdf6e3 url('https://www.transparenttextures.com/patterns/flowers.png') repeat;
+  }
+  .handwritten { font-family: 'Handlee', cursive; }
+</style>
+</head>
+<body class="text-pink-900 relative">
+
+<nav class="flex justify-between items-center px-8 py-6 bg-pink-100 shadow-md">
+  <div class="text-3xl font-bold"><a href="index.html">Dandelions</a></div>
+  <div class="space-x-6 text-lg">
+    <a href="manager-dashboard.html" class="hover:text-pink-600 font-semibold">Manager Dashboard</a>
+    <a href="logout.html" class="hover:text-pink-600">Logout</a>
+  </div>
+</nav>
+
+<div class="max-w-7xl mx-auto p-8 space-y-12">
+
+  <!-- Summary cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8" data-aos="fade-up">
+    <div class="p-6 bg-yellow-100 rounded-3xl shadow text-center">
+      <h3 class="text-2xl handwritten mb-2">Total Volunteers</h3>
+      <p id="totalVolunteers" class="text-4xl font-bold">0</p>
+    </div>
+    <div class="p-6 bg-pink-100 rounded-3xl shadow text-center">
+      <h3 class="text-2xl handwritten mb-2">Unique Roles</h3>
+      <p id="totalRoles" class="text-4xl font-bold">0</p>
+    </div>
+    <div class="p-6 bg-green-100 rounded-3xl shadow text-center">
+      <h3 class="text-2xl handwritten mb-2">Upcoming Birthdays</h3>
+      <p id="upcomingBirthdaysCount" class="text-4xl font-bold">0</p>
+    </div>
+  </div>
+
+  <!-- Pie chart -->
+  <div class="bg-white bg-opacity-80 p-6 rounded-3xl shadow flex justify-center" data-aos="fade-up">
+    <div class="w-full md:w-1/2">
+      <h2 class="text-2xl handwritten mb-4 text-center">Volunteer Roles Distribution </h2>
+      <canvas id="rolesChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="bg-pink-50 p-6 rounded-3xl shadow space-y-4" data-aos="fade-up">
+    <h2 class="text-2xl handwritten text-center mb-2">Filter Volunteers</h2>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <select id="roleFilter" class="p-3 rounded-xl border-pink-300 focus:outline-pink-500 handwritten">
+        <option value="All">All Roles</option>
+      </select>
+      <input type="text" id="nameFilter" placeholder="Filter by Name..." class="p-3 rounded-xl border-pink-300 focus:outline-pink-500 handwritten" />
+      <input type="text" id="emailFilter" placeholder="Filter by Email..." class="p-3 rounded-xl border-pink-300 focus:outline-pink-500 handwritten" />
+      <input type="text" id="dobFilter" placeholder="Filter by DOB (YYYY)" class="p-3 rounded-xl border-pink-300 focus:outline-pink-500 handwritten" />
+    </div>
+  </div>
+
+  <!-- Volunteer directory -->
+  <div class="bg-yellow-50 p-6 rounded-3xl shadow space-y-4" data-aos="fade-up">
+    <h2 class="text-2xl handwritten text-center mb-2">Volunteer Directory</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="bg-pink-100 text-pink-800">
+          <tr>
+            <th class="p-3 text-left">Name</th>
+            <th class="p-3">Email</th>
+            <th class="p-3">Role</th>
+            <th class="p-3">DOB</th>
+            <th class="p-3">Address</th>
+          </tr>
+        </thead>
+        <tbody id="volunteersTable" class="text-gray-800"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+AOS.init({ duration: 1200 });
+
+async function loadDashboard() {
+  try {
+    const res = await fetch('http://localhost:3000/api/volunteers');
+    const volunteers = await res.json();
+
+    // Summary
+    document.getElementById("totalVolunteers").innerText = volunteers.length;
+    const rolesMap = {}, birthdays = [], now = new Date();
+    volunteers.forEach(v => {
+      rolesMap[v.title] = (rolesMap[v.title] || 0) + 1;
+      const dob = new Date(v.dob);
+      const nextBday = new Date(now.getFullYear(), dob.getMonth(), dob.getDate());
+      if (nextBday >= now && nextBday <= new Date(now.getFullYear(), now.getMonth()+1, now.getDate())) {
+        birthdays.push(v);
+      }
+    });
+    document.getElementById("totalRoles").innerText = Object.keys(rolesMap).length;
+    document.getElementById("upcomingBirthdaysCount").innerText = birthdays.length;
+
+    // Pie chart
+    new Chart(document.getElementById('rolesChart'), {
+      type: 'pie',
+      data: {
+        labels: Object.keys(rolesMap),
+        datasets: [{
+          data: Object.values(rolesMap),
+          backgroundColor: ['#f472b6','#fcd34d','#34d399','#a78bfa','#fbbf24'],
+          hoverOffset: 12
+        }]
+      },
+      options: {
+        responsive: true,
+        animation: { animateScale: true, animateRotate: true },
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: { callbacks: {
+            label: ctx => `${ctx.label}: ${ctx.parsed} volunteers`
+          }}
+        }
+      }
+    });
+
+    // Fill role filter
+    const roleFilter = document.getElementById("roleFilter");
+    Object.keys(rolesMap).forEach(role => {
+      roleFilter.innerHTML += `<option value="${role}">${role}</option>`;
+    });
+
+    // Filter logic
+    const tbody = document.getElementById("volunteersTable");
+    function renderTable() {
+      const selectedRole = roleFilter.value;
+      const name = document.getElementById("nameFilter").value.toLowerCase();
+      const email = document.getElementById("emailFilter").value.toLowerCase();
+      const dobYear = document.getElementById("dobFilter").value.trim();
+
+      tbody.innerHTML = "";
+      volunteers.forEach(v => {
+        const matchRole = (selectedRole === "All" || v.title === selectedRole);
+        const matchName = (`${v.first_name} ${v.last_name}`).toLowerCase().includes(name);
+        const matchEmail = v.email.toLowerCase().includes(email);
+        const matchDob = (!dobYear || new Date(v.dob).getFullYear().toString() === dobYear);
+
+        if (matchRole && matchName && matchEmail && matchDob) {
+          tbody.innerHTML += `
+            <tr class="border-b hover:bg-pink-50">
+              <td class="p-3">${v.first_name} ${v.last_name}</td>
+              <td class="p-3">${v.email}</td>
+              <td class="p-3">${v.title}</td>
+              <td class="p-3">${new Date(v.dob).toLocaleDateString()}</td>
+              <td class="p-3">${v.address}</td>
+            </tr>`;
+        }
+      });
+    }
+
+    // Initial + filter listeners
+    renderTable();
+    document.querySelectorAll("#roleFilter, #nameFilter, #emailFilter, #dobFilter")
+      .forEach(input => input.addEventListener("input", renderTable));
+
+  } catch (err) {
+    console.error("Dashboard load error:", err);
+  }
+}
+loadDashboard();
+</script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dandelions Volunteer Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Handlee&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body {
+    font-family: 'Playfair Display', serif;
+    background: #fdf6e3 url('https://www.transparenttextures.com/patterns/flowers.png') repeat;
+  }
+  .handwritten { font-family: 'Handlee', cursive; }
+</style>
+</head>
+<body class="text-pink-900 relative">
+
+<nav class="flex justify-between items-center px-8 py-6 bg-pink-100 shadow-md">
+  <div class="text-3xl handwritten font-bold"><a href="index.html">Dandelions</a></div>
+  <div class="space-x-6 text-lg">
+    <a href="volunteer-dashboard.html" class="hover:text-pink-600 font-semibold">My Dashboard</a>
+    <a href="logout.html" class="hover:text-pink-600">Logout</a>
+  </div>
+</nav>
+
+<div class="max-w-7xl mx-auto p-8 space-y-12">
+
+  <!-- Welcome & summary -->
+  <div class="text-center space-y-3">
+    <h1 class="text-4xl handwritten">Welcome back, Chi!</h1>
+    <p class="text-lg">Thank you for growing our garden of kindness! We really appreciate you for all you do!</p>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8" data-aos="fade-up">
+    <div class="p-6 bg-yellow-100 rounded-3xl shadow text-center">
+      <h3 class="text-xl handwritten mb-2">Total Hours</h3>
+      <p class="text-4xl font-bold">42.5</p>
+    </div>
+    <div class="p-6 bg-pink-100 rounded-3xl shadow text-center">
+      <h3 class="text-xl handwritten mb-2">Completed Shifts</h3>
+      <p class="text-4xl font-bold">12</p>
+    </div>
+    <div class="p-6 bg-green-100 rounded-3xl shadow text-center">
+      <h3 class="text-xl handwritten mb-2">Next Shift</h3>
+      <p class="text-xl font-semibold">July 20, 2025<br>Food Distribution</p>
+    </div>
+  </div>
+
+  <!-- Progress chart -->
+  <div class="bg-white bg-opacity-80 p-6 rounded-3xl shadow" data-aos="fade-up">
+    <h2 class="text-2xl handwritten mb-4 text-center">My Volunteer Hours Over Months</h2>
+    <canvas id="hoursChart"></canvas>
+  </div>
+
+  <!-- Upcoming shifts -->
+  <div class="bg-pink-50 p-6 rounded-3xl shadow" data-aos="fade-up">
+    <h2 class="text-2xl handwritten mb-4 text-center">Upcoming Shifts</h2>
+    <ul class="space-y-4">
+      <li class="p-4 bg-white rounded-xl shadow flex justify-between items-center">
+        <div>
+          <p class="font-semibold">Food Distribution</p>
+          <p class="text-sm text-pink-800">July 20, 2025 • 3 hours</p>
+        </div>
+        <button onclick="openModal('Food Distribution')" class="bg-pink-400 hover:bg-pink-500 text-white px-4 py-2 rounded-full handwritten">Cancel</button>
+      </li>
+      <li class="p-4 bg-white rounded-xl shadow flex justify-between items-center">
+        <div>
+          <p class="font-semibold">Event Organizer</p>
+          <p class="text-sm text-pink-800">August 5, 2025 • 4 hours</p>
+        </div>
+        <button onclick="openModal('Event Organizer')" class="bg-pink-400 hover:bg-pink-500 text-white px-4 py-2 rounded-full handwritten">Cancel</button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Sign up section -->
+  <div class="bg-yellow-50 p-6 rounded-3xl shadow space-y-4" data-aos="fade-up">
+    <h2 class="text-2xl handwritten text-center mb-4">Sign Up for New Shifts 🌼</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="p-4 bg-white rounded-xl shadow flex justify-between items-center">
+        <div>
+          <p class="font-semibold">Tutor</p>
+          <p class="text-sm text-pink-800">July 28, 2025 • 2 hours</p>
+        </div>
+        <a href="signup.html" class="bg-green-400 hover:bg-green-500 text-white px-4 py-2 rounded-full handwritten">Sign Up</a>
+      </div>
+      <div class="p-4 bg-white rounded-xl shadow flex justify-between items-center">
+        <div>
+          <p class="font-semibold">Community Cleanup</p>
+          <p class="text-sm text-pink-800">August 12, 2025 • 3 hours</p>
+        </div>
+        <a href="signup.html" class="bg-green-400 hover:bg-green-500 text-white px-4 py-2 rounded-full handwritten">Sign Up</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center z-50">
+  <div class="bg-white p-8 rounded-3xl shadow-xl max-w-md text-center space-y-4">
+    <h3 class="text-2xl handwritten">Wait! 🌷</h3>
+    <p id="modalMessage" class="text-pink-900">Are you sure you want to cancel this shift? We’re sad to see you go.</p>
+    <div class="flex justify-center gap-4">
+      <button id="confirmBtn" class="bg-pink-400 hover:bg-pink-500 text-white px-6 py-2 rounded-full handwritten">Yes, cancel</button>
+      <button onclick="closeModal()" class="bg-gray-300 hover:bg-gray-400 text-pink-900 px-6 py-2 rounded-full handwritten">Never mind</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+AOS.init({ duration: 1200 });
+
+new Chart(document.getElementById('hoursChart'), {
+  type: 'line',
+  data: {
+    labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul"],
+    datasets: [{
+      label: "Hours",
+      data: [2, 4, 5, 3, 6, 7, 8],
+      borderColor: "#d946ef",
+      backgroundColor: "rgba(249,168,212,0.4)",
+      tension: 0.3,
+      fill: true,
+      pointRadius: 5,
+      pointHoverRadius: 7
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: "bottom" }}
+  }
+});
+
+function openModal(shiftName) {
+  document.getElementById('modalMessage').innerText = 
+    `Are you sure you want to cancel your ${shiftName} shift? We’re sad to see you go.`;
+  const modal = document.getElementById('confirmModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+
+  document.getElementById('confirmBtn').onclick = function() {
+    alert(`Your ${shiftName} shift has been canceled. Hope to see you again soon!`);
+    closeModal();
+  };
+}
+
+function closeModal() {
+  const modal = document.getElementById('confirmModal');
+  modal.classList.remove('flex');
+  modal.classList.add('hidden');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up - Dandelions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Handlee&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Playfair Display', serif;
+      background: #fdf6e3 url('https://www.transparenttextures.com/patterns/paper-fibers.png') repeat;
+    }
+    .handwritten { font-family: 'Handlee', cursive; }
+    .input-box {
+      background: rgba(255,255,255,0.6);
+      border: 2px dashed rgba(219,39,119,0.4);
+      padding: 0.8rem;
+      border-radius: 0.8rem;
+      width: 100%;
+      outline: none;
+      transition: box-shadow 0.3s;
+    }
+    .input-box:focus {
+      box-shadow: 0 0 10px rgba(219,39,119,0.2);
+    }
+    button[disabled] {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    #petalContainer {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 30;
+      overflow: hidden;
+    }
+    .petal {
+      position: absolute;
+      top: -10px;
+      color: rgba(219,39,119,0.25);
+      animation: fall 7s linear forwards;
+      font-size: 10px;
+    }
+    @keyframes fall {
+      0% { transform: translateY(0) rotate(0deg); opacity:0.8; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity:0; }
+    }
+  </style>
+</head>
+<body class="text-pink-900">
+
+<div id="petalContainer"></div>
+
+<div class="max-w-2xl mx-auto mt-16 p-10 bg-pink-100 bg-opacity-60 rounded-3xl shadow-xl space-y-8">
+  <h1 class="text-5xl font-bold text-center handwritten">Volunteer Sign Up</h1>
+  <p class="text-xl text-center">We are so excited to have you join our mission </p>
+
+  <form id="signupForm" class="space-y-6">
+    <div>
+      <label class="block mb-2 handwritten text-lg" for="name">Full Name</label>
+      <input type="text" id="name" placeholder="Your Name" class="input-box"/>
+    </div>
+    <div>
+      <label class="block mb-2 handwritten text-lg" for="email">Email Address</label>
+      <input type="email" id="email" placeholder="you@example.com" class="input-box"/>
+    </div>
+    <div>
+      <label class="block mb-2 handwritten text-lg" for="phone">Phone Number</label>
+      <input type="text" id="phone" placeholder="(555) 123-4567" class="input-box"/>
+    </div>
+
+    <div class="space-y-4 bg-yellow-50 p-6 rounded-xl">
+      <h2 class="text-3xl handwritten">Shift Details</h2>
+      <p class="text-lg"><strong>Title:</strong> <span id="shiftTitle">Loading...</span></p>
+      <p class="text-lg"><strong>Date:</strong> <span id="shiftDate">Loading...</span></p>
+      <p class="text-lg"><strong>Hours:</strong> <span id="shiftHours">Loading...</span></p>
+      <p class="text-lg"><strong>Who you will help:</strong> <span id="shiftImpact">Loading...</span></p>
+      <p class="text-lg"><strong>Details:</strong> <span id="shiftDesc">Loading...</span></p>
+      <div class="mt-4 p-3 rounded-xl bg-green-100 text-green-800 text-center">
+        💚 This location is <span id="accessibilityNote">Loading...</span>
+      </div>
+    </div>
+
+    <div class="text-center mt-6">
+      <button type="button" onclick="submitSignup()" class="bg-pink-400 hover:bg-pink-500 text-white px-10 py-4 rounded-full shadow transition handwritten">
+        Confirm My Spot
+      </button>
+    </div>
+  </form>
+
+  <div id="confirmation" class="hidden text-center space-y-4 mt-6">
+    <h2 class="text-3xl handwritten">You are all set!</h2>
+    <p class="text-lg">We have sent you a confirmation email. Thank you for helping our community!</p>
+    <p class="text-md">Redirecting you back to see more opportunities in <span id="countdown">5</span>...</p>
+    <a href="volunteer.html" class="inline-block mt-4 bg-yellow-400 hover:bg-yellow-500 text-white px-8 py-3 rounded-full shadow handwritten">Back to Volunteer Page</a>
+  </div>
+
+  <p class="text-sm text-center mt-4">Thank you for sharing your heart with Dandelions </p>
+</div>
+
+<footer class="mt-20 text-center text-sm text-pink-800">
+  © 2025 Dandelions. With love & care.
+</footer>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const title = params.get('title') || 'Default';
+
+  const impactMap = {
+    'Tutor': 'Children who need extra learning support',
+    'Food Distribution': 'Local families & elders',
+    'Event Organizer': 'Community events for everyone',
+    'Community Cleanup': 'Neighborhood families & kids',
+    'Default': 'Children, elders, and people with disabilities'
+  };
+  const descMap = {
+    'Tutor': 'Help kids build confidence by tutoring in reading & math.',
+    'Food Distribution': 'Pack and hand out fresh food to local families.',
+    'Event Organizer': 'Assist with setting up, welcoming guests & fun activities.',
+    'Community Cleanup': 'Join neighbors in making our parks and streets shine.',
+    'Default': 'Support our friendly community events and services.'
+  };
+
+  document.getElementById('shiftTitle').innerText = title;
+  document.getElementById('shiftDate').innerText = params.get('date') || 'Soon';
+  document.getElementById('shiftHours').innerText = params.get('hours') || 'Flexible';
+  document.getElementById('shiftImpact').innerText = impactMap[title] || impactMap['Default'];
+  document.getElementById('shiftDesc').innerText = descMap[title] || descMap['Default'];
+  document.getElementById('accessibilityNote').innerText = "wheelchair accessible ";
+
+  function createPetal() {
+    const petal = document.createElement("div");
+    petal.classList.add("petal");
+    petal.style.left = Math.random() * 100 + "vw";
+    petal.style.animationDuration = (5 + Math.random() * 5) + "s";
+    petal.style.fontSize = 8 + Math.random() * 10 + "px";
+    petal.innerHTML = "✿";
+    document.getElementById("petalContainer").appendChild(petal);
+    setTimeout(() => petal.remove(), 10000);
+  }
+
+  async function submitSignup() {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const btn = event.target;
+
+    if (!name || !email || !phone) {
+      alert('Please fill in all your details.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = 'Submitting...';
+
+    try {
+      const res = await fetch('http://localhost:3000/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          title: params.get('title'),
+          date: params.get('date'),
+          hours: params.get('hours')
+        })
+      });
+
+      if (res.ok) {
+        document.getElementById('signupForm').style.display = 'none';
+        document.getElementById('confirmation').classList.remove('hidden');
+
+        let countdown = 5;
+        const countdownElem = document.getElementById('countdown');
+        const interval = setInterval(() => {
+          countdown--;
+          countdownElem.textContent = countdown;
+          if (countdown <= 0) {
+            clearInterval(interval);
+            window.location.href = "volunteer.html";
+          }
+        }, 1000);
+
+        for (let i = 0; i < 20; i++) {
+          setTimeout(createPetal, i * 200);
+        }
+      } else {
+        alert('Oops, something went wrong. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Could not connect to server.');
+    } finally {
+      btn.disabled = false;
+      btn.innerText = 'Confirm My Spot';
+    }
+  }
+</script>
+</body>
+</html>

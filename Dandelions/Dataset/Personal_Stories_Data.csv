@@ -1,0 +1,31 @@
+story_id,volunteer_id,text,related_shift_id,related_kit_id
+ST0001,V0288,"I led a fun quiz game, seeing everyone laugh together was priceless.",S0102,K0033
+ST0002,V0015,I played music and some elders even started dancing with joy.,S0223,K0077
+ST0003,V0080,I felt so grateful to help the children paint pictures today.,S0285,K0017
+ST0004,V0414,I guided some children through homework and saw them smile with pride.,S0022,K0065
+ST0005,V0049,I sat with a little girl who told me about her dreams of becoming a teacher.,S0041,K0045
+ST0006,V0379,I learned so much just by listening to stories from the elders.,S0104,K0040
+ST0007,V0484,"I led a fun quiz game, seeing everyone laugh together was priceless.",S0013,K0096
+ST0008,V0211,I spent hours organizing books for the children’s library.,S0200,K0009
+ST0009,V0226,I was amazed by how happy the elders were when we sang songs together.,S0239,K0079
+ST0010,V0068,I helped set up a health check station and it felt meaningful.,S0141,K0046
+ST0011,V0443,"I helped distribute warm clothes on a chilly day, feeling their gratitude.",S0254,K0089
+ST0012,V0086,I learned so much just by listening to stories from the elders.,S0011,K0044
+ST0013,V0312,I shared snacks and laughter during an afternoon story circle.,S0173,K0065
+ST0014,V0140,I helped organize donated toys and saw kids’ eyes sparkle.,S0026,K0072
+ST0015,V0409,I organized a small art session and was amazed by their creativity.,S0099,K0028
+ST0016,V0199,"I worked with others to decorate the hall for a festival, bringing joy to all.",S0071,K0088
+ST0017,V0187,I spent hours organizing books for the children’s library.,S0285,K0035
+ST0018,V0342,"I served meals and shared laughs with the elders, which made my day.",S0077,K0001
+ST0019,V0414,"I helped distribute warm clothes on a chilly day, feeling their gratitude.",S0186,K0011
+ST0020,V0386,I talked to an elder who shared memories from their youth; it was moving.,S0235,K0052
+ST0021,V0176,"I helped distribute warm clothes on a chilly day, feeling their gratitude.",S0169,K0029
+ST0022,V0335,I guided some children through homework and saw them smile with pride.,S0261,K0054
+ST0023,V0195,I learned so much just by listening to stories from the elders.,S0070,K0100
+ST0024,V0410,I shared snacks and laughter during an afternoon story circle.,S0202,K0001
+ST0025,V0432,I helped clean the common area so the elders could have a safe space.,S0195,K0066
+ST0026,V0465,I felt so grateful to help the children paint pictures today.,S0197,K0040
+ST0027,V0389,I helped organize donated toys and saw kids’ eyes sparkle.,S0275,K0045
+ST0028,V0465,I helped elders use tablets to video call their families; it was emotional.,S0056,K0027
+ST0029,V0016,I talked to an elder who shared memories from their youth; it was moving.,S0038,K0098
+ST0030,V0045,"I planted flowers with the children, hoping they’ll bloom for seasons.",S0196,K0050

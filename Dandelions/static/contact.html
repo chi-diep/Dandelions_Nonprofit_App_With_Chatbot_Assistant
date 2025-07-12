@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dandelions - Contact Us</title>
+
+  <!-- importing fonts, tailwind, AOS animation -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Handlee&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+
+  <style>
+    /* fonts and paper texture background */
+    body { font-family: 'Playfair Display', serif; }
+    .paper {
+      background: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+      background-color: #fdf6e3;
+    }
+
+    /* dotted line dividers */
+    .dotted-line {
+      border-top: 2px dotted rgba(219,39,119,0.6);
+      margin: 2rem 0;
+    }
+
+    /* input and textarea styles */
+    .form-input {
+      background-color: rgba(255,255,255,0.6);
+      border: 2px dashed rgba(219,39,119,0.5);
+      padding: 0.75rem;
+      width: 100%;
+      border-radius: 0.75rem;
+      outline: none;
+      transition: box-shadow 0.3s;
+    }
+    .form-input:focus {
+      box-shadow: 0 0 10px rgba(219,39,119,0.3);
+    }
+
+    /* floating flower background circles */
+    .flower-bg::before, .flower-bg::after {
+      content: "";
+      position: fixed;
+      width: 80px; height: 80px;
+      background: rgba(219,39,119,0.1);
+      border-radius: 50%;
+      z-index: -1;
+      animation: float 10s linear infinite;
+    }
+    .flower-bg::before { top: 10%; left: 5%; animation-delay: 0s;}
+    .flower-bg::after { bottom: 15%; right: 10%; animation-delay: 5s;}
+
+    @keyframes float {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+      100% { transform: translateY(0); }
+    }
+
+    .handwritten { font-family: 'Handlee', cursive; }
+
+    /* fade in and scale up effect */
+    .fade-in-scale { animation: fadeScale 0.6s ease forwards; }
+    @keyframes fadeScale {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+
+<body class="bg-yellow-50 text-pink-900 flower-bg relative">
+
+<!-- navigation bar -->
+<nav class="flex justify-between items-center px-8 py-6 bg-pink-100 shadow-md">
+  <div class="text-3xl font-bold"><a href="index.html">Dandelions</a></div>
+  <div class="space-x-6 text-lg">
+    <a href="about.html" class="hover:text-pink-600">About</a>
+    <a href="volunteer.html" class="hover:text-pink-600">Volunteer</a>
+    <a href="donor.html" class="hover:text-pink-600">Donate</a>
+    <a href="contact.html" class="hover:text-pink-600 font-semibold">Contact</a>
+  </div>
+</nav>
+
+<!-- main contact form card -->
+<div class="max-w-3xl mx-auto p-10 paper rounded-3xl shadow-xl mt-12 space-y-8" data-aos="fade-up">
+  <h1 class="text-5xl font-bold text-center">Write to Us</h1>
+  <p class="text-xl italic text-center leading-relaxed">
+    "A kind word is like a flower. It brightens the day for whoever receives it."
+  </p>
+  <div class="dotted-line"></div>
+
+  <!-- contact form -->
+  <form class="space-y-6" data-aos="fade-up" id="contactForm">
+    <input type="text" placeholder="Your Name" class="form-input" id="name"/>
+    <input type="email" placeholder="Your Email" class="form-input" id="email"/>
+    <textarea placeholder="Your Message" rows="5" class="form-input" id="message"></textarea>
+    <div class="text-center">
+      <button type="submit" class="bg-pink-400 hover:bg-pink-500 text-white px-8 py-4 rounded-full shadow-lg transition">
+        Send Message
+      </button>
+    </div>
+  </form>
+
+  <div class="dotted-line"></div>
+
+  <!-- alternative contact info -->
+  <p class="text-xl text-center leading-relaxed">
+    Or reach out directly:<br>
+    <span class="block mt-2">info@dandelions.org</span>
+    <span class="block mt-2">(555) 123-4567</span>
+  </p>
+
+  <!-- sweet closing note -->
+  <div class="mt-8 text-center handwritten text-2xl leading-relaxed text-pink-800">
+    <p>With gentle hearts,</p>
+    <p class="mt-2">— The Dandelions Team</p>
+  </div>
+</div>
+
+<!-- footer at the bottom -->
+<footer class="mt-20 bg-pink-100 text-center p-6 rounded-t-3xl shadow-inner">
+  <p class="text-lg">© 2025 Dandelions | info@dandelions.org | (555) 123-4567</p>
+</footer>
+
+<!-- animations on scroll + contact form mailto handler -->
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+  AOS.init({ duration: 1200 });
+
+  document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const message = document.getElementById('message').value.trim();
+    if (!name || !email || !message) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    // open user's mail client with filled data
+    const mailto = `mailto:info@dandelions.org?subject=Hello from ${encodeURIComponent(name)}&body=Hello Dandelions Team,%0D%0A%0D%0AMy name is ${encodeURIComponent(name)}.%0D%0AMy email: ${encodeURIComponent(email)}.%0D%0A%0D%0AI wanted to say: ${encodeURIComponent(message)}%0D%0A%0D%0AWith love,%0D%0A${encodeURIComponent(name)}`;
+    window.location.href = mailto;
+
+    this.reset();
+  });
+</script>
+</body>
+</html>

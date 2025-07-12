@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dandelions - Our Impact</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Playfair Display', serif;
+      background: #fdf6e3 url('https://www.transparenttextures.com/patterns/paper-fibers.png') repeat;
+    }
+    .doodle {
+      border: 4px dashed rgba(219, 39, 119, 0.4);
+      border-radius: 2rem;
+      padding: 2rem;
+      position: relative;
+      background: rgba(255,255,255,0.4);
+    }
+    .doodle::before, .doodle::after {
+      content: "🌸";
+      position: absolute;
+      font-size: 2rem;
+      opacity: 0.4;
+    }
+    .doodle::before { top: -10px; left: -10px; }
+    .doodle::after { bottom: -10px; right: -10px; }
+    .parallax {
+      background-attachment: fixed;
+      background-size: cover;
+      background-position: center;
+      height: 30rem;
+      border-radius: 2rem;
+      overflow: hidden;
+    }
+    .cta-glow:hover {
+      box-shadow: 0 0 20px rgba(219,39,119,0.5);
+      transform: scale(1.05);
+    }
+    #thankOverlay {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(219,39,119,0.15);
+      padding: 1rem 2rem;
+      border-radius: 1.5rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #9b2c55;
+      backdrop-filter: blur(5px);
+    }
+    /* modal */
+    .modal {
+      position: fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background: rgba(219,39,119,0.2);
+      backdrop-filter: blur(6px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 50;
+      opacity:0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal.show {
+      opacity:1;
+      pointer-events: all;
+    }
+  </style>
+</head>
+<body class="text-pink-900 relative">
+
+<nav class="flex justify-between items-center px-8 py-6 bg-pink-100 shadow-md z-10 relative">
+  <div class="text-3xl font-bold"><a href="index.html">Dandelions</a></div>
+  <div class="space-x-6 text-lg">
+    <a href="about.html" class="hover:text-pink-600">About</a>
+    <a href="volunteer.html" class="hover:text-pink-600">Volunteer</a>
+    <a href="donor.html" class="hover:text-pink-600 font-semibold">Donate</a>
+    <a href="contact.html" class="hover:text-pink-600">Contact</a>
+  </div>
+</nav>
+
+<div class="max-w-6xl mx-auto p-10 space-y-20">
+
+  <!-- Parallax Hero -->
+  <div class="parallax shadow-2xl" style="background-image: url('https://getfullyfunded.com/wp-content/uploads/2019/04/hands-together.jpg');" data-aos="fade-up">
+    <div class="flex items-center justify-center h-full bg-pink-100 bg-opacity-60 p-8">
+      <p class="text-4xl text-center leading-relaxed">"Every hand that gives grows a thousand blooms of hope."</p>
+    </div>
+  </div>
+
+  <!-- Impact stories -->
+  <div class="space-y-10" data-aos="fade-up">
+    <h2 class="text-4xl font-bold text-center mb-6">Real Lives You've Changed</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="doodle shadow space-y-4">
+        <p class="text-xl italic">"I came here after losing everything. Today, I have friends who feel like family. Thank you for making this possible."</p>
+        <p class="font-bold">— Ms. Latha, 78</p>
+      </div>
+      <div class="doodle shadow space-y-4">
+        <p class="text-xl italic">"At Dandelions, I found people who cheer for me even when I just draw a sun. It means more than words."</p>
+        <p class="font-bold">— Ravi, 8</p>
+      </div>
+      <div class="doodle shadow space-y-4">
+        <p class="text-xl italic">"My mom says this place gave her her smile back. I like it here because everyone laughs so much."</p>
+        <p class="font-bold">— Tara, 12</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fancy Chart -->
+  <div class="bg-yellow-100 p-14 rounded-3xl shadow-xl text-center mt-20 relative" data-aos="fade-up">
+    <h2 class="text-4xl font-bold mb-6">How Your Kindness Has Grown</h2>
+    <div id="thankOverlay">Over <span id="totalHours" class="font-bold">0</span> hours of joy!</div>
+    <canvas id="impactChart" class="w-full h-96 relative z-10"></canvas>
+  </div>
+
+  <!-- CTA -->
+  <div class="bg-pink-100 p-14 rounded-3xl shadow-xl text-center mt-20" data-aos="fade-up">
+    <h2 class="text-4xl font-bold mb-6">Together, let's grow more stories of joy.</h2>
+    <p class="text-2xl leading-relaxed mb-8">Your donations water our garden of friendships, laughter, and second chances🌸</p>
+    <button onclick="openModal()" class="bg-yellow-400 hover:bg-yellow-500 text-white px-10 py-4 rounded-full shadow-lg transition cta-glow">
+      Donate Now
+    </button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="donateModal" class="modal">
+  <div class="bg-yellow-50 p-10 rounded-3xl shadow-xl max-w-md w-full space-y-6 relative text-center">
+    <h3 class="text-3xl font-bold mb-4">Choose your gift</h3>
+    <div class="flex justify-center space-x-4">
+      <button onclick="donate(10)" class="bg-pink-400 hover:bg-pink-500 text-white px-6 py-3 rounded-full shadow transition">💖 $10</button>
+      <button onclick="donate(25)" class="bg-pink-400 hover:bg-pink-500 text-white px-6 py-3 rounded-full shadow transition">🌷 $25</button>
+      <button onclick="donate(50)" class="bg-pink-400 hover:bg-pink-500 text-white px-6 py-3 rounded-full shadow transition">🌸 $50</button>
+    </div>
+    <div>
+      <input id="customAmount" type="number" min="1" placeholder="Or enter amount" class="mt-4 w-2/3 p-2 rounded border border-pink-300 focus:ring-2 focus:ring-pink-200"/>
+      <button onclick="donateCustom()" class="mt-2 bg-yellow-400 hover:bg-yellow-500 text-white px-6 py-2 rounded-full shadow transition">Donate</button>
+    </div>
+    <button onclick="closeModal()" class="absolute top-3 right-4 text-pink-600 text-2xl hover:scale-110 transition">&times;</button>
+  </div>
+</div>
+
+<footer class="mt-20 bg-pink-100 text-center p-6 rounded-t-3xl shadow-inner">
+  <p class="text-lg">© 2025 Dandelions | info@dandelions.org | (555) 123-4567</p>
+</footer>
+
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+  AOS.init({ duration: 1200 });
+
+  function openModal() {
+    document.getElementById('donateModal').classList.add('show');
+  }
+  function closeModal() {
+    document.getElementById('donateModal').classList.remove('show');
+  }
+  function donate(amount) {
+    window.open(`https://paypal.me/yourdandelionslink/${amount}`, '_blank');
+    closeModal();
+  }
+  function donateCustom() {
+    const amt = document.getElementById('customAmount').value;
+    if (amt && amt > 0) {
+      donate(amt);
+    }
+  }
+
+  async function loadDonorChart() {
+    try {
+      const res = await fetch('http://localhost:3000/api/shifts');
+      const shifts = await res.json();
+      const byMonth = {};
+      shifts.forEach(s => {
+        const date = new Date(s.date);
+        const key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+        byMonth[key] = (byMonth[key] || 0) + parseFloat(s.hours);
+      });
+      const labels = Object.keys(byMonth).sort();
+      let cumulative = 0;
+      const data = labels.map(k => cumulative += byMonth[k]);
+      document.getElementById('totalHours').innerText = cumulative.toFixed(0);
+
+      const ctx = document.getElementById('impactChart').getContext('2d');
+      const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+      gradient.addColorStop(0, 'rgba(219,39,119,0.3)');
+      gradient.addColorStop(1, 'rgba(219,39,119,0.05)');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Volunteer Hours',
+            data,
+            fill: true,
+            backgroundColor: gradient,
+            borderColor: 'rgba(219,39,119,0.8)',
+            borderWidth: 3,
+            pointBackgroundColor: 'rgba(219,39,119,1)',
+            pointBorderColor: '#fff',
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(255,245,250,0.95)',
+              titleColor: '#9b2c55',
+              bodyColor: '#9b2c55',
+              borderColor: 'rgba(219,39,119,0.3)',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#9b2c55' }},
+            y: { beginAtZero: true, grid: { color: 'rgba(219,39,119,0.1)' }, ticks: { color: '#9b2c55' }}
+          }
+        }
+      });
+
+    } catch (err) {
+      console.error('Chart load error:', err);
+    }
+  }
+  loadDonorChart();
+</script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dandelions - A Place to Belong</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <style>
+    body { font-family: 'Playfair Display', serif; }
+  </style>
+</head>
+<body class="bg-yellow-50 text-pink-900">
+
+<!-- Navbar -->
+<nav class="flex justify-between items-center px-8 py-6 bg-pink-100 shadow-md">
+  <div class="text-3xl font-bold"><a href="index.html">Dandelions</a></div>
+  <div class="space-x-6 text-lg">
+    <a href="about.html" class="hover:text-pink-600">About</a>
+    <a href="volunteer.html" class="hover:text-pink-600">Volunteer</a>
+    <a href="donor.html" class="hover:text-pink-600">Donate</a>
+    <a href="contact.html" class="hover:text-pink-600">Contact</a>
+  </div>
+</nav>
+
+<div class="max-w-7xl mx-auto p-10 space-y-20">
+  <div class="text-center space-y-6" data-aos="fade-up">
+    <h1 class="text-6xl font-bold tracking-wider">Welcome to Dandelions</h1>
+    <p class="text-2xl max-w-3xl mx-auto">We are a home that brings orphaned children, retired elders, and people with disabilities together under one roof. We share life, build long-lasting friendships, and support each other like family.</p>
+  </div>
+
+  <!-- Metrics -->
+  <div id="impactMetrics" class="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center mt-10" data-aos="fade-up">
+    <div class="bg-pink-100 p-8 rounded-2xl shadow">
+      <h3 class="text-4xl font-bold" id="totalHours">0+</h3>
+      <p>Volunteer Hours</p>
+    </div>
+    <div class="bg-pink-100 p-8 rounded-2xl shadow">
+      <h3 class="text-4xl font-bold" id="totalKits">0+</h3>
+      <p>Kits Delivered</p>
+    </div>
+    <div class="bg-pink-100 p-8 rounded-2xl shadow">
+      <h3 class="text-4xl font-bold" id="neighborhoods">0+</h3>
+      <p>Neighborhoods Served</p>
+    </div>
+  </div>
+
+  <!-- Story cards -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+    <div class="relative group overflow-hidden rounded-3xl shadow-2xl" data-aos="fade-up">
+      <img src="https://www.dupageseniorcouncil.org/wp-content/uploads/2018/07/Kids-volunteering-with-Seniors-1.png" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+      <div class="absolute inset-0 bg-yellow-100 bg-opacity-70 opacity-0 group-hover:opacity-100 transition duration-700 flex items-center justify-center p-8">
+        <p class="text-xl">"Before coming here, many elders felt lonely. Now they gather daily for tea, share stories, and laugh like old friends."</p>
+      </div>
+    </div>
+    <div class="relative group overflow-hidden rounded-3xl shadow-2xl" data-aos="fade-up">
+      <img src="https://ideas.ted.com/wp-content/uploads/sites/3/2019/03/featured_art_village_for_all_ages_istock.jpg" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+      <div class="absolute inset-0 bg-pink-100 bg-opacity-70 opacity-0 group-hover:opacity-100 transition duration-700 flex items-center justify-center p-8">
+        <p class="text-xl">"I spent an afternoon playing memory games with Mr.Ken. His smile said more than words ever could."</p>
+      </div>
+    </div>
+    <div class="relative group overflow-hidden rounded-3xl shadow-2xl" data-aos="fade-up">
+      <img src="https://www.aurumliving.com/blog/wp-content/uploads/2021/07/Old-Age-Home.jpg" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+      <div class="absolute inset-0 bg-yellow-100 bg-opacity-70 opacity-0 group-hover:opacity-100 transition duration-700 flex items-center justify-center p-8">
+        <p class="text-xl">"She thought her days of laughter were gone. At Dandelions, she found friends who gave her a reason to smile again."</p>
+      </div>
+    </div>
+    <div class="relative group overflow-hidden rounded-3xl shadow-2xl" data-aos="fade-up">
+      <img src="https://edsurge.imgix.net/uploads/post/image/16110/Intergen_Header-1734118624.png?auto=compress%2Cformat&w=640&h=480&fit=crop" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+      <div class="absolute inset-0 bg-pink-100 bg-opacity-70 opacity-0 group-hover:opacity-100 transition duration-700 flex items-center justify-center p-8">
+        <p class="text-xl">"Our children were having a great time with their 'grandfriends'. Everyone sang and clapped along."</p>
+      </div>
+    </div>
+    <div class="relative group overflow-hidden rounded-3xl shadow-2xl" data-aos="fade-up">
+      <img src="https://images.squarespace-cdn.com/content/v1/5005cf7684ae9eec4f9d1861/1518547038540-R8GB0LAXMIV2HJDHRX1F/team.jpg" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+      <div class="absolute inset-0 bg-yellow-100 bg-opacity-70 opacity-0 group-hover:opacity-100 transition duration-700 flex items-center justify-center p-8">
+        <p class="text-xl">"The kids worked on puzzles, giggling whenever they got a piece wrong. Here, learning feels like love."</p>
+      </div>
+    </div>
+    <div class="relative group overflow-hidden rounded-3xl shadow-2xl" data-aos="fade-up">
+      <img src="https://invisiblepeople.tv/wp-content/uploads/2018/09/family-4.jpg" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+      <div class="absolute inset-0 bg-pink-100 bg-opacity-70 opacity-0 group-hover:opacity-100 transition duration-700 flex items-center justify-center p-8">
+        <p class="text-xl">"When little Anil grabbed my hand and asked if I would play with him again tomorrow, it made my entire week."</p>
+      </div>
+    </div>
+    <div class="relative group overflow-hidden rounded-3xl shadow-2xl" data-aos="fade-up">
+      <img src="https://weareworldchallenge.com/wp-content/uploads/2024/01/Orphanages.jpg" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+      <div class="absolute inset-0 bg-yellow-100 bg-opacity-70 opacity-0 group-hover:opacity-100 transition duration-700 flex items-center justify-center p-8">
+        <p class="text-xl">"Watching them do homework side by side on old wooden benches, I saw what real friendship looks like."</p>
+      </div>
+    </div>
+    <div class="relative group overflow-hidden rounded-3xl shadow-2xl" data-aos="fade-up">
+      <img src="https://media.istockphoto.com/id/1401422616/photo/group-of-happy-african-children-orphanage-in-nairobi-kenya-east-africa.jpg?s=612x612&w=0&k=20&c=B43DVlZEh_9eQT-j8aNip-Wt2wz7fE3ytvVXogcCZt0=" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+      <div class="absolute inset-0 bg-pink-100 bg-opacity-70 opacity-0 group-hover:opacity-100 transition duration-700 flex items-center justify-center p-8">
+        <p class="text-xl">"They posed proudly for this photo, smiles so bright you would never guess how hard their roads have been."</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="bg-pink-100 p-14 rounded-3xl shadow-xl text-center mt-20" data-aos="fade-up">
+    <h2 class="text-5xl font-bold mb-6">At Dandelions, everyone finds a piece of family.</h2>
+    <p class="text-3xl leading-relaxed mb-8">No matter how different our stories are, here we build new ones together.</p>
+    <div>
+      <a href="volunteer.html" class="bg-pink-400 hover:bg-pink-500 text-white px-8 py-4 rounded-full shadow-lg transition">Become a Volunteer</a>
+      <a href="donor.html" class="ml-4 bg-yellow-400 hover:bg-yellow-500 text-white px-8 py-4 rounded-full shadow-lg transition">Donate Now</a>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-20 bg-pink-100 text-center p-6 rounded-t-3xl shadow-inner">
+    <p class="text-lg">© 2025 Dandelions | info@dandelions.org | (555) 123-4567</p>
+  </footer>
+
+  <!-- Chat -->
+  <div id="chatContainer" style="position: fixed; bottom: 30px; right: 30px; z-index: 9999;">
+    <button id="chatButton" class="bg-pink-500 hover:bg-pink-600 text-white rounded-full w-20 h-20 shadow-xl animate-pulse flex items-center justify-center text-xl font-bold transition">
+      Need help?
+    </button>
+    <div id="chatBox" class="hidden flex-col bg-white border-2 border-pink-300 shadow-2xl rounded-3xl p-4 mt-4 w-80">
+      <div id="chatHeader" class="mb-2 text-lg font-bold cursor-move text-pink-600">AI Volunteer Assistant</div>
+      <input type="text" id="chatInput" placeholder="Ask something..." class="w-full border border-pink-300 rounded-full px-4 py-2 mb-2 focus:outline-none">
+      <button onclick="sendQuestion()" class="bg-pink-400 hover:bg-pink-500 text-white px-4 py-2 rounded-full w-full">Ask</button>
+      <div id="chatResponse" class="mt-2 text-sm text-gray-700"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+AOS.init({ duration: 1200 });
+
+async function loadImpactMetrics() {
+  try {
+    const shiftsRes = await fetch('http://localhost:5000/api/shifts');
+    const shifts = await shiftsRes.json();
+    const totalHours = shifts.reduce((sum, shift) => sum + parseFloat(shift.hours), 0);
+
+    const kitsRes = await fetch('http://localhost:5000/api/kits');
+    const kits = await kitsRes.json();
+    const neighborhoods = new Set(kits.map(k => k.location));
+
+    animateCount('totalHours', totalHours.toFixed(0));
+    animateCount('totalKits', kits.length);
+    animateCount('neighborhoods', neighborhoods.size);
+  } catch (err) {
+    console.error('Failed to load metrics:', err);
+  }
+}
+
+function animateCount(id, end) {
+  let start = 0;
+  const element = document.getElementById(id);
+  const duration = 1000;
+  const step = Math.ceil(end / (duration / 20));
+  const counter = setInterval(() => {
+    start += step;
+    if (start >= end) {
+      start = end;
+      clearInterval(counter);
+    }
+    element.innerText = start + '+';
+  }, 20);
+}
+
+loadImpactMetrics();
+
+const chatButton = document.getElementById('chatButton');
+const chatBox = document.getElementById('chatBox');
+chatButton.addEventListener('click', () => {
+  chatBox.classList.toggle('hidden');
+});
+
+dragElement(document.getElementById("chatContainer"));
+function dragElement(elmnt) {
+  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  const header = document.getElementById("chatHeader");
+  if (header) {
+    header.onmousedown = dragMouseDown;
+  }
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    elmnt.style.bottom = "auto";
+    elmnt.style.right = "auto";
+  }
+
+  function closeDragElement() {
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}
+
+async function sendQuestion() {
+  const input = document.getElementById('chatInput');
+  const responseDiv = document.getElementById('chatResponse');
+  const question = input.value.trim();
+  if (!question) return;
+
+  responseDiv.innerHTML = "<em>Thinking...</em>";
+  try {
+    const res = await fetch("http://localhost:5000/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question })
+    });
+    const data = await res.json();
+    responseDiv.innerHTML = `<strong>AI:</strong> ${data.answer || "Sorry, I don't know."}`;
+  } catch (err) {
+    responseDiv.innerHTML = "<span class='text-red-500'>Failed to reach the assistant.</span>";
+  }
+
+  input.value = "";
+}
+</script>
+</body>
+</html>

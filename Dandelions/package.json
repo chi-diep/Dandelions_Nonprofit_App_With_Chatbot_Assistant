@@ -1,0 +1,26 @@
+{
+  "name": "dandelions",
+  "version": "1.0.0",
+  "description": "Volunteer app with MFA, SendGrid, PostgreSQL and RAG assistant",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["volunteer", "express", "postgresql", "sendgrid", "mfa", "rag"],
+  "author": "chi-diep",
+  "license": "ISC",
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.5",
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.1",
+    "express": "^5.1.0",
+    "json2csv": "^6.0.0-alpha.2",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}

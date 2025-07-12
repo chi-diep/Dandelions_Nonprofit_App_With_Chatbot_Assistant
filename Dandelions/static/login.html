@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login to Dandelions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Handlee&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <style>
+    body {
+      font-family: 'Playfair Display', serif;
+      background: #fdf6e3 url('https://www.transparenttextures.com/patterns/paper-fibers.png') repeat;
+    }
+    .handwritten { font-family: 'Handlee', cursive; }
+    .input-box {
+      background: rgba(255,255,255,0.6);
+      border: 2px dashed rgba(219,39,119,0.4);
+      padding: 0.8rem;
+      border-radius: 0.8rem;
+      width: 100%;
+      outline: none;
+      transition: box-shadow 0.3s;
+    }
+    .input-box:focus {
+      box-shadow: 0 0 10px rgba(219,39,119,0.2);
+    }
+    select.input-box {
+      color: #7b3f61;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg%20width%3D%2210%22%20height%3D%225%22%20xmlns%3D%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M0%200l5%205%205-5z%22%20fill%3D%22%237b3f61%22/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.7rem center;
+      background-size: 12px;
+    }
+    button[disabled] {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="text-pink-900">
+
+<div class="max-w-lg mx-auto mt-20 p-10 bg-pink-100 bg-opacity-60 rounded-3xl shadow-xl space-y-8" data-aos="fade-up">
+  <h1 class="text-5xl font-bold text-center handwritten">Welcome Back</h1>
+  <p class="text-xl text-center">Login securely to your Dandelions account 🌸</p>
+
+  <form id="loginForm" class="space-y-6">
+    <input type="email" id="email" placeholder="Your Email" class="input-box"/>
+    <select id="role" class="input-box">
+      <option value="" disabled selected>Select your role</option>
+      <option value="manager">Staff Manager</option>
+      <option value="volunteer">Volunteer</option>
+    </select>
+
+    <div class="text-center">
+      <button type="button" id="sendBtn" onclick="sendCode()" class="bg-yellow-400 hover:bg-yellow-500 hover:scale-105 transform transition text-white px-8 py-3 rounded-full shadow handwritten">
+        Send Code
+      </button>
+    </div>
+
+    <input type="text" id="code" placeholder="Verification Code" class="input-box mt-4"/>
+    <div class="text-center">
+      <button type="button" id="verifyBtn" onclick="verifyCode()" class="bg-pink-400 hover:bg-pink-500 hover:scale-105 transform transition text-white px-8 py-3 rounded-full shadow handwritten">
+        Verify & Login
+      </button>
+    </div>
+  </form>
+
+  <p class="text-sm text-center mt-4">We’ll email you a secure code. No password to forget ✨</p>
+</div>
+
+<footer class="mt-20 text-center text-sm text-pink-800">
+  © 2025 Dandelions. With love & care.
+</footer>
+
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+  if (typeof AOS !== "undefined") {
+    AOS.init({ duration: 1200 });
+  }
+
+  async function sendCode() {
+    const email = document.getElementById('email').value.trim();
+    const btn = document.getElementById('sendBtn');
+    if (!email) return alert('Please enter your email.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert('Please enter a valid email address.');
+
+    btn.innerText = 'Sending...';
+    btn.disabled = true;
+    try {
+      const res = await fetch('http://localhost:3000/api/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      if (res.ok) {
+        alert('Verification code sent! Please check your email.');
+      } else {
+        const errData = await res.json();
+        alert(errData.error || 'Could not send code.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to send code.');
+    } finally {
+      btn.innerText = 'Send Code';
+      btn.disabled = false;
+    }
+  }
+
+  async function verifyCode() {
+    const email = document.getElementById('email').value.trim();
+    const code = document.getElementById('code').value.trim();
+    const role = document.getElementById('role').value;
+    const btn = document.getElementById('verifyBtn');
+
+    if (!email || !code || !role) return alert('Please fill all fields.');
+
+    btn.innerText = 'Verifying...';
+    btn.disabled = true;
+    try {
+      const res = await fetch('http://localhost:3000/api/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        alert('Logged in successfully!');
+        if (data.role === 'manager') {
+          window.location.href = "manager-dashboard.html";
+        } else {
+          window.location.href = "volunteer-dashboard.html";
+        }
+      } else {
+        const errData = await res.json();
+        alert(errData.error || 'Invalid code or expired. Please try again.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Verification failed.');
+    } finally {
+      btn.innerText = 'Verify & Login';
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>
