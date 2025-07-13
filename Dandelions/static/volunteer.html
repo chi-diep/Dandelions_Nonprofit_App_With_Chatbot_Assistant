@@ -137,7 +137,7 @@
 
   async function loadVolunteerPage() {
     try {
-      const res = await fetch('http://localhost:3000/api/shifts');
+      const res = await fetch('/api/shifts');
       const shifts = await res.json();
       const now = new Date();
       const weekAgo = new Date();
