@@ -133,11 +133,11 @@ AOS.init({ duration: 1200 });
 
 async function loadImpactMetrics() {
   try {
-    const shiftsRes = await fetch('http://localhost:5000/api/shifts');
+    const shiftsRes = await fetch('/api/shifts');
     const shifts = await shiftsRes.json();
     const totalHours = shifts.reduce((sum, shift) => sum + parseFloat(shift.hours), 0);
 
-    const kitsRes = await fetch('http://localhost:5000/api/kits');
+    const kitsRes = await fetch('/api/kits');
     const kits = await kitsRes.json();
     const neighborhoods = new Set(kits.map(k => k.location));
 
@@ -216,7 +216,7 @@ async function sendQuestion() {
 
   responseDiv.innerHTML = "<em>Thinking...</em>";
   try {
-    const res = await fetch("http://localhost:5000/ask", {
+    const res = await fetch("/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question })
