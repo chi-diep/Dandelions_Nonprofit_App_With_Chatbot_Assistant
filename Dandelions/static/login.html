@@ -90,7 +90,7 @@
     btn.innerText = 'Sending...';
     btn.disabled = true;
     try {
-      const res = await fetch('http://localhost:3000/api/send-code', {
+      const res = await fetch('/api/send-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -121,7 +121,7 @@
     btn.innerText = 'Verifying...';
     btn.disabled = true;
     try {
-      const res = await fetch('http://localhost:3000/api/verify-code', {
+      const res = await fetch('/api/verify-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code })
