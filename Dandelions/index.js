@@ -1,20 +1,17 @@
 import express from 'express';
-import pkg from 'pg';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import sgMail from '@sendgrid/mail';
-import { Parser } from 'json2csv';
 import path from 'path';
+import fs from 'fs';
 
 dotenv.config();
-const { Pool } = pkg;
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 
-// set extra security headers
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -22,10 +19,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// serve your static HTML/CSS/JS from the static folder
 app.use(express.static(path.join(path.resolve(), 'static')));
 
-// check for SendGrid key
 if (!process.env.SENDGRID_API_KEY) {
   console.error("No SENDGRID_API_KEY found in .env. Exiting...");
   process.exit(1);
@@ -33,14 +28,14 @@ if (!process.env.SENDGRID_API_KEY) {
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 console.log('Loaded SendGrid Key:', process.env.SENDGRID_API_KEY.slice(0, 8));
 
-// setup postgres
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
+function readJsonFile(filename) {
+  const filepath = path.join('Data- JSON format', filename);
+  if (!fs.existsSync(filepath)) return [];
+  return JSON.parse(fs.readFileSync(filepath, 'utf8'));
+}
 
-let currentCodes = {}; // holds MFA codes
+let currentCodes = {};
 
-// clean up expired codes every minute
 setInterval(() => {
   const now = Date.now();
   for (const [email, record] of Object.entries(currentCodes)) {
@@ -48,7 +43,6 @@ setInterval(() => {
   }
 }, 60000);
 
-// send MFA code
 app.post('/api/send-code', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: "Email is required" });
@@ -71,7 +65,7 @@ app.post('/api/send-code', async (req, res) => {
           ${code}
         </div>
       </div>
-      <p style="font-size:14px;color:#555;">If this wasn’t you, just ignore this email. Your data stays safe 🌱.</p>
+      <p style="font-size:14px;color:#555;">If this wasn’t you, just ignore this email. Your data stays safe.</p>
     </div>
     <div style="background:#f6f6f6;text-align:center;padding:18px;">
       <small style="color:#999;">&copy; ${new Date().getFullYear()} Dandelions. All rights reserved.</small>
@@ -94,7 +88,6 @@ app.post('/api/send-code', async (req, res) => {
   }
 });
 
-// verify MFA code
 app.post('/api/verify-code', async (req, res) => {
   const { email, code } = req.body;
   if (!email || !code) return res.status(400).json({ error: "Email and code required" });
@@ -111,10 +104,11 @@ app.post('/api/verify-code', async (req, res) => {
 
     let role = "volunteer";
     try {
-      const check = await pool.query(`SELECT role FROM volunteers WHERE email=$1`, [email]);
-      if (check.rows.length > 0) role = check.rows[0].role || "volunteer";
+      const data = readJsonFile('volunteers.json');
+      const found = data.find(v => v.email === email);
+      if (found?.role) role = found.role;
     } catch (err) {
-      console.error("DB role lookup failed:", err);
+      console.error("Role lookup failed:", err);
     }
 
     console.log(`Verified ${email} as ${role}`);
@@ -124,23 +118,45 @@ app.post('/api/verify-code', async (req, res) => {
   res.status(401).json({ error: "Invalid code" });
 });
 
-// volunteer signup
+app.get('/api/signups', (req, res) => {
+  try {
+    const data = readJsonFile('signups_data.json');
+    res.json(data);
+  } catch (err) {
+    console.error('Error reading signups_data.json:', err);
+    res.status(500).json({ error: 'Could not fetch signups' });
+  }
+});
+
 app.post('/api/signup', async (req, res) => {
   const { name, email, phone, title, date, hours } = req.body;
   console.log(`New signup: ${name} for ${title} on ${date}`);
 
+  const signup = {
+    id: Date.now(),
+    name,
+    email,
+    phone,
+    shift_title: title,
+    shift_date: date,
+    shift_hours: hours,
+    created_at: new Date().toISOString()
+  };
+
   try {
-    await pool.query(
-      `INSERT INTO signups (name, email, phone, shift_title, shift_date, shift_hours)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [name, email, phone, title, date, hours]
-    );
+    const filepath = path.join('Data- JSON format', 'signups_data.json');
+    let data = [];
+    if (fs.existsSync(filepath)) {
+      data = JSON.parse(fs.readFileSync(filepath, 'utf8'));
+    }
+    data.push(signup);
+    fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
 
     const htmlContent = `
     <div style="max-width:600px;margin:auto;font-family:sans-serif;border-radius:10px;overflow:hidden;border:1px solid #e0e0e0;box-shadow:0 4px 20px rgba(0,0,0,0.05);">
       <div style="background:linear-gradient(135deg,#d946ef,#facc15);padding:25px;text-align:center;">
         <h2 style="color:#fff;font-size:24px;">Thanks for signing up, ${name}!</h2>
-        <p style="color:#ecf0f1;font-size:14px;">We're excited to see you at Dandelions 🌼</p>
+        <p style="color:#ecf0f1;font-size:14px;">We are excited to see you at Dandelions!</p>
       </div>
       <div style="padding:30px;background:#fff;">
         <p style="font-size:16px;color:#333;">You’re confirmed for:</p>
@@ -166,72 +182,43 @@ app.post('/api/signup', async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
-    console.error('Signup DB or SendGrid error:', err);
+    console.error('Signup write or SendGrid error:', err);
     res.status(500).json({ error: 'Could not save signup' });
   }
 });
 
-// CSV + data endpoints
-app.get('/api/signups', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM signups ORDER BY created_at DESC');
-    res.json(result.rows);
-  } catch (err) {
-    console.error('DB error fetching signups:', err);
-    res.status(500).json({ error: 'Could not fetch signups' });
-  }
-});
-
-app.get('/api/signups.csv', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM signups ORDER BY created_at DESC');
-    const parser = new Parser({ fields: ['id', 'name', 'email', 'phone', 'shift_title', 'shift_date', 'shift_hours', 'created_at'] });
-    const csv = parser.parse(result.rows);
-
-    res.header('Content-Type', 'text/csv');
-    res.attachment('dandelions_signups.csv');
-    return res.send(csv);
-  } catch (err) {
-    console.error('CSV export failed:', err);
-    res.status(500).json({ error: 'Could not generate CSV' });
-  }
-});
-
-app.get('/api/shifts', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM shifts ORDER BY date ASC');
-    res.json(result.rows);
-  } catch (err) {
-    console.error('DB error fetching shifts:', err);
+app.get('/api/shifts', (req, res) => {
+  try { res.json(readJsonFile('shifts.json')); }
+  catch (err) {
+    console.error('Error reading shifts.json:', err);
     res.status(500).json({ error: 'Could not fetch shifts' });
   }
 });
 
-app.get('/api/kits', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM kits ORDER BY kit_id ASC');
-    res.json(result.rows);
-  } catch (err) {
-    console.error('DB error fetching kits:', err);
+app.get('/api/kits', (req, res) => {
+  try { res.json(readJsonFile('kits.json')); }
+  catch (err) {
+    console.error('Error reading kits.json:', err);
     res.status(500).json({ error: 'Could not fetch kits' });
   }
 });
 
-app.get('/api/volunteers', async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT volunteer_id, first_name, last_name, dob, email, address, title
-      FROM volunteers
-      ORDER BY first_name
-    `);
-    res.json(result.rows);
-  } catch (err) {
-    console.error("DB error fetching volunteers:", err);
+app.get('/api/volunteers', (req, res) => {
+  try { res.json(readJsonFile('volunteers.json')); }
+  catch (err) {
+    console.error('Error reading volunteers.json:', err);
     res.status(500).json({ error: 'Could not fetch volunteers' });
   }
 });
 
-// health check and fallback
+app.get('/api/personal-stories', (req, res) => {
+  try { res.json(readJsonFile('personal_stories.json')); }
+  catch (err) {
+    console.error('Error reading personal_stories.json:', err);
+    res.status(500).json({ error: 'Could not fetch personal stories' });
+  }
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
 });
