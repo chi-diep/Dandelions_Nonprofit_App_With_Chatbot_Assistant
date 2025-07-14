@@ -6,67 +6,72 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
+import json
 import os
-import psycopg2
 
 def build_rag_chain():
     profiles = {}
-    conn = None
+
     try:
-        # connect to my postgres database
-        conn = psycopg2.connect(
-        dbname="Dandelions",
-        user="postgres",
-        password=os.getenv("DB_PASSWORD"),
-        host="localhost",
-        port="5432"
-        )
+        # load data from JSON files
+        with open('Data- JSON format/volunteers.json', 'r', encoding='utf-8') as f:
+            volunteers = json.load(f)
+        with open('Data- JSON format/kits.json', 'r', encoding='utf-8') as f:
+            kits = json.load(f)
+        with open('Data- JSON format/shifts.json', 'r', encoding='utf-8') as f:
+            shifts = json.load(f)
+        with open('Data- JSON format/personal_stories.json', 'r', encoding='utf-8') as f:
+            stories = json.load(f)
+        with open('Data- JSON format/signups_data.json', 'r', encoding='utf-8') as f:
+            signups = json.load(f)
 
-        cur = conn.cursor()
-
-        # grab volunteers
-        cur.execute("SELECT volunteer_id, first_name, last_name, dob, email, address, title, days_available FROM volunteers;")
-        for row in cur.fetchall():
-            vid, fname, lname, dob, email, address, title, days_avail = row
+        # build profiles from volunteers
+        for v in volunteers:
+            vid = v['volunteer_id']
             profiles[vid] = {
-                "profile": f"Volunteer Profile:\nID: {vid}\nName: {fname} {lname}\nDOB: {dob}\nEmail: {email}\nAddress: {address}\nTitle: {title}\nDays Available: {days_avail}",
+                "profile": f"Volunteer Profile:\nID: {vid}\nName: {v['first_name']} {v['last_name']}\nDOB: {v['dob']}\nEmail: {v['email']}\nAddress: {v['address']}\nTitle: {v['title']}\nDays Available: {v['days_available']}",
                 "kits": [], "shifts": [], "stories": [], "signups": []
             }
 
-        # grab kits
-        cur.execute("SELECT volunteer_id, kit_id, kit_type, quantity, date_given, location FROM kits;")
-        for vid, kid, ktype, qty, date, loc in cur.fetchall():
+        # kits
+        for k in kits:
+            vid = k['volunteer_id']
             if vid in profiles:
-                profiles[vid]["kits"].append(f"Kit ID: {kid}, Type: {ktype}, Quantity: {qty}, Date: {date}, Location: {loc}")
+                profiles[vid]["kits"].append(
+                    f"Kit ID: {k['kit_id']}, Type: {k['kit_type']}, Quantity: {k['quantity']}, Date: {k['date']}, Location: {k['location']}"
+                )
 
-        # grab shifts
-        cur.execute("SELECT volunteer_id, shift_id, title, hours, date FROM shifts;")
-        for vid, sid, title, hours, date in cur.fetchall():
+        # shifts
+        for s in shifts:
+            vid = s['volunteer_id']
             if vid in profiles:
-                profiles[vid]["shifts"].append(f"Shift ID: {sid}, Title: {title}, Hours: {hours}, Date: {date}")
+                profiles[vid]["shifts"].append(
+                    f"Shift ID: {s['shift_id']}, Title: {s['title']}, Hours: {s['hours']}, Date: {s['date']}"
+                )
 
-        # grab stories
-        cur.execute("SELECT volunteer_id, story_id, text, related_shift_id, related_kit_id FROM personal_stories;")
-        for vid, sid, text, rel_shift, rel_kit in cur.fetchall():
+        # stories
+        for story in stories:
+            vid = story['volunteer_id']
             if vid in profiles:
-                profiles[vid]["stories"].append(f"Story ID: {sid}, Related Shift: {rel_shift}, Related Kit: {rel_kit}, Text: {text}")
+                profiles[vid]["stories"].append(
+                    f"Story ID: {story['story_id']}, Related Shift: {story['related_shift_id']}, Related Kit: {story['related_kit_id']}, Text: {story['text']}"
+                )
 
-        # grab signups
-        cur.execute("SELECT id, name, email, phone, shift_title, shift_date, shift_hours, created_at FROM signups;")
-        for sid, name, email, phone, stitle, sdate, shours, created in cur.fetchall():
-            pseudo_id = f"signup_{sid}"
+        # also create profiles for signups
+        for signup in signups:
+            pseudo_id = f"signup_{signup['id']}"
             profiles[pseudo_id] = {
-                "profile": f"Signup:\nID: {sid}\nName: {name}\nEmail: {email}\nPhone: {phone}\nShift: {stitle}, Date: {sdate}, Hours: {shours}\nSigned at: {created}",
+                "profile": f"Signup:\nID: {signup['id']}\nName: {signup['name']}\nEmail: {signup['email']}\nPhone: {signup['phone']}\nShift: {signup['shift_title']}, Date: {signup['shift_date']}, Hours: {signup['shift_hours']}\nSigned at: {signup['created_at']}",
                 "kits": [], "shifts": [], "stories": [], "signups": []
             }
 
-        cur.close()
         print(f"Loaded data: {len(profiles)} volunteer & signup profiles.")
-    except Exception as e:
-        print(f"Database connection failed: {e}")
-        return None, None
 
-    # turn volunteer data into documents for RAG
+    except Exception as e:
+        print(f"Failed to load JSON data: {e}")
+        return None
+
+    # turn profiles into documents
     documents = []
     for vid, data in profiles.items():
         total_hours = 0
@@ -90,15 +95,14 @@ def build_rag_chain():
 
     print(f"Created {len(documents)} documents for RAG.")
 
-    # set up vector database with chroma
+    # setup vector db
     splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
     chunks = splitter.split_documents(documents)
     embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L12-v2")
     db = Chroma.from_documents(chunks, embedding=embedder)
     retriever = db.as_retriever(search_kwargs={"k": 10})
-    print(f"Chroma vector DB ready with {len(chunks)} chunks.")
 
-    # build the QA chain that does the answering
+    # build the QA chain
     prompt_template = PromptTemplate(
         input_variables=["context", "question"],
         template="""You are a helpful assistant managing volunteer data.
@@ -121,34 +125,30 @@ Answer:"""
         chain_type_kwargs={"prompt": prompt_template}
     )
 
-    print("RAG + hybrid chain fully initialized.")
-    return qa_chain, conn
+    print("RAG chain fully initialized.")
+    return qa_chain
 
-# this handles questions that might be better answered by SQL
-def hybrid_qa(query, qa_chain, conn):
+
+def hybrid_qa(query, qa_chain):
     lower_q = query.lower()
     try:
         if any(word in lower_q for word in ["count", "total", "number of", "how many", "sum", "max", "min", "largest", "smallest", "average"]):
-            with conn.cursor() as cur:
-                if "volunteer" in lower_q:
-                    print("Running SQL COUNT on volunteers...")
-                    cur.execute("SELECT COUNT(*) FROM volunteers;")
-                    count = cur.fetchone()[0]
-                    return f"There are a total of {count} volunteers in your dataset."
-                elif "kits" in lower_q:
-                    print("Running SQL COUNT on kits...")
-                    cur.execute("SELECT COUNT(*) FROM kits;")
-                    count = cur.fetchone()[0]
-                    return f"There are a total of {count} kits distributed."
-                elif "shifts" in lower_q:
-                    print("Running SQL COUNT on shifts...")
-                    cur.execute("SELECT COUNT(*) FROM shifts;")
-                    count = cur.fetchone()[0]
-                    return f"There are a total of {count} shifts recorded."
-                else:
-                    return "I can compute totals and counts, but please specify 'volunteers', 'kits', or 'shifts'."
+            if "volunteer" in lower_q:
+                with open('Data- JSON format/volunteers.json', 'r', encoding='utf-8') as f:
+                    volunteers = json.load(f)
+                return f"There are a total of {len(volunteers)} volunteers in your dataset."
+            elif "kits" in lower_q:
+                with open('Data- JSON format/kits.json', 'r', encoding='utf-8') as f:
+                    kits = json.load(f)
+                return f"There are a total of {len(kits)} kits distributed."
+            elif "shifts" in lower_q:
+                with open('Data- JSON format/shifts.json', 'r', encoding='utf-8') as f:
+                    shifts = json.load(f)
+                return f"There are a total of {len(shifts)} shifts recorded."
+            else:
+                return "I can compute totals and counts, but please specify 'volunteers', 'kits', or 'shifts'."
     except Exception as e:
-        print(f"SQL failed: {e}")
+        print(f"JSON lookup failed: {e}")
 
     print("Falling back to RAG...")
     rag_result = qa_chain.invoke({"query": query})
