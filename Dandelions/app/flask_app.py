@@ -1,81 +1,35 @@
-# flask_app.py
+import json
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import psycopg2
 from rag_chain import build_rag_chain, hybrid_qa
 
 app = Flask(__name__)
 CORS(app)
 
-# set up the RAG and hybrid chain right away
 qa_chain, conn = build_rag_chain()
 
-import os
-
-def get_db_connection():
-    return psycopg2.connect(
-        dbname="Dandelions",
-        user="postgres",
-        password=os.getenv("DB_PASSWORD"),
-        host="localhost",
-        port="5432"
-    )
+def load_json_data(filename):
+    try:
+        with open(os.path.join("Data- JSON format", filename), "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Failed to load {filename}: {e}")
+        return []
 
 @app.route("/api/shifts")
 def get_shifts():
-    try:
-        # get all the shift data from the database
-        con = get_db_connection()
-        cur = con.cursor()
-        cur.execute("SELECT volunteer_id, shift_id, title, hours, date FROM shifts;")
-        rows = cur.fetchall()
-        cur.close()
-        con.close()
-        data = [
-            {
-                "volunteer_id": r[0],
-                "shift_id": r[1],
-                "title": r[2],
-                "hours": float(r[3]),
-                "date": str(r[4])
-            }
-            for r in rows
-        ]
-        return jsonify(data)
-    except Exception as e:
-        print(f"Error fetching shifts: {e}")
-        return jsonify({"error": str(e)}), 500
+    data = load_json_data("shifts.json")
+    return jsonify(data)
 
 @app.route("/api/kits")
 def get_kits():
-    try:
-        # get all the kits data from the database
-        con = get_db_connection()
-        cur = con.cursor()
-        cur.execute("SELECT volunteer_id, kit_id, kit_type, quantity, date_given, location FROM kits;")
-        rows = cur.fetchall()
-        cur.close()
-        con.close()
-        data = [
-            {
-                "volunteer_id": r[0],
-                "kit_id": r[1],
-                "kit_type": r[2],
-                "quantity": int(r[3]),
-                "date": str(r[4]),
-                "location": r[5]
-            }
-            for r in rows
-        ]
-        return jsonify(data)
-    except Exception as e:
-        print(f"Error fetching kits: {e}")
-        return jsonify({"error": str(e)}), 500
+    data = load_json_data("kits.json")
+    return jsonify(data)
 
 @app.route("/ask", methods=["POST"])
 def ask():
     try:
-        # handle question sent from the frontend
         data = request.get_json(force=True)
         question = data.get("question", "").strip()
         print(f"Incoming question: {question}")
