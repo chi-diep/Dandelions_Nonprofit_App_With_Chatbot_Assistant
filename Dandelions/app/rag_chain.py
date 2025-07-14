@@ -11,9 +11,7 @@ import os
 
 def build_rag_chain():
     profiles = {}
-
     try:
-        # load data from JSON files
         with open('Data- JSON format/volunteers.json', 'r', encoding='utf-8') as f:
             volunteers = json.load(f)
         with open('Data- JSON format/kits.json', 'r', encoding='utf-8') as f:
@@ -25,39 +23,31 @@ def build_rag_chain():
         with open('Data- JSON format/signups_data.json', 'r', encoding='utf-8') as f:
             signups = json.load(f)
 
-        # build profiles from volunteers
+        # Build profiles
         for v in volunteers:
             vid = v['volunteer_id']
             profiles[vid] = {
                 "profile": f"Volunteer Profile:\nID: {vid}\nName: {v['first_name']} {v['last_name']}\nDOB: {v['dob']}\nEmail: {v['email']}\nAddress: {v['address']}\nTitle: {v['title']}\nDays Available: {v['days_available']}",
                 "kits": [], "shifts": [], "stories": [], "signups": []
             }
-
-        # kits
         for k in kits:
             vid = k['volunteer_id']
             if vid in profiles:
                 profiles[vid]["kits"].append(
                     f"Kit ID: {k['kit_id']}, Type: {k['kit_type']}, Quantity: {k['quantity']}, Date: {k['date']}, Location: {k['location']}"
                 )
-
-        # shifts
         for s in shifts:
             vid = s['volunteer_id']
             if vid in profiles:
                 profiles[vid]["shifts"].append(
                     f"Shift ID: {s['shift_id']}, Title: {s['title']}, Hours: {s['hours']}, Date: {s['date']}"
                 )
-
-        # stories
         for story in stories:
             vid = story['volunteer_id']
             if vid in profiles:
                 profiles[vid]["stories"].append(
                     f"Story ID: {story['story_id']}, Related Shift: {story['related_shift_id']}, Related Kit: {story['related_kit_id']}, Text: {story['text']}"
                 )
-
-        # also create profiles for signups
         for signup in signups:
             pseudo_id = f"signup_{signup['id']}"
             profiles[pseudo_id] = {
@@ -69,20 +59,13 @@ def build_rag_chain():
 
     except Exception as e:
         print(f"Failed to load JSON data: {e}")
-        return None
+        return None, {}
 
-    # turn profiles into documents
+    # build RAG documents
     documents = []
     for vid, data in profiles.items():
-        total_hours = 0
-        for s in data["shifts"]:
-            parts = s.split("Hours:")
-            if len(parts) > 1:
-                try:
-                    total_hours += float(parts[1].split(",")[0].strip())
-                except:
-                    pass
-
+        total_hours = sum(float(s.split("Hours:")[1].split(",")[0].strip())
+                          for s in data["shifts"] if "Hours:" in s)
         content = f"{data['profile']}\nTotal hours worked across shifts: {total_hours}\n\n"
         if data["kits"]:
             content += "Kits Given:\n" + "\n".join(data["kits"]) + "\n"
@@ -90,26 +73,21 @@ def build_rag_chain():
             content += "Shifts Worked:\n" + "\n".join(data["shifts"]) + "\n"
         if data["stories"]:
             content += "Personal Stories:\n" + "\n".join(data["stories"]) + "\n"
-
         documents.append(Document(page_content=content))
 
-    print(f"Created {len(documents)} documents for RAG.")
-
-    # setup vector db
     splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
     chunks = splitter.split_documents(documents)
     embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L12-v2")
     db = Chroma.from_documents(chunks, embedding=embedder)
     retriever = db.as_retriever(search_kwargs={"k": 10})
 
-    # build the QA chain
     prompt_template = PromptTemplate(
         input_variables=["context", "question"],
         template="""You are a helpful assistant managing volunteer data.
 
 Use ONLY the context below.
-If the question involves shifts or kits, make sure to consider total hours and kit distribution.
-If the info is not there, reply: "I don't know."
+If the question involves shifts or kits, consider totals, averages and distributions.
+If info not present, reply: "I don't know."
 
 Context:
 {context}
@@ -118,6 +96,7 @@ Question: {question}
 
 Answer:"""
     )
+
     llm = OllamaLLM(model="mistral")
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
@@ -126,29 +105,68 @@ Answer:"""
     )
 
     print("RAG chain fully initialized.")
-    return qa_chain
+    return qa_chain, {
+        "volunteers": volunteers,
+        "kits": kits,
+        "shifts": shifts,
+        "signups": signups
+    }
 
-
-def hybrid_qa(query, qa_chain):
-    lower_q = query.lower()
+def hybrid_qa(query, qa_chain, data_dict):
+    query = query.lower()
     try:
-        if any(word in lower_q for word in ["count", "total", "number of", "how many", "sum", "max", "min", "largest", "smallest", "average"]):
-            if "volunteer" in lower_q:
-                with open('Data- JSON format/volunteers.json', 'r', encoding='utf-8') as f:
-                    volunteers = json.load(f)
-                return f"There are a total of {len(volunteers)} volunteers in your dataset."
-            elif "kits" in lower_q:
-                with open('Data- JSON format/kits.json', 'r', encoding='utf-8') as f:
-                    kits = json.load(f)
+        volunteers = data_dict.get("volunteers", [])
+        kits = data_dict.get("kits", [])
+        shifts = data_dict.get("shifts", [])
+        signups = data_dict.get("signups", [])
+
+        hours = [float(s.get("hours", 0)) for s in shifts if s.get("hours") is not None]
+        signup_hours = [float(s.get("shift_hours", 0)) for s in signups if s.get("shift_hours") is not None]
+
+        # COUNT and TOTAL
+        if any(word in query for word in ["count", "total", "number of", "how many"]):
+            if "volunteer" in query:
+                return f"There are a total of {len(volunteers)} volunteers."
+            elif "kit" in query:
                 return f"There are a total of {len(kits)} kits distributed."
-            elif "shifts" in lower_q:
-                with open('Data- JSON format/shifts.json', 'r', encoding='utf-8') as f:
-                    shifts = json.load(f)
+            elif "shift" in query:
                 return f"There are a total of {len(shifts)} shifts recorded."
+            elif "signup" in query:
+                return f"There are a total of {len(signups)} volunteer signups."
+
+        # SUM / TOTAL HOURS
+        if "total" in query or "sum" in query:
+            if "hours" in query:
+                total_hours = sum(hours) + sum(signup_hours)
+                return f"The total hours worked across all shifts and signups is {total_hours} hours."
+
+        # AVERAGE HOURS
+        if "average" in query or "mean" in query:
+            combined_hours = hours + signup_hours
+            if combined_hours:
+                avg = sum(combined_hours) / len(combined_hours)
+                return f"The average hours per shift or signup is {avg:.2f} hours."
             else:
-                return "I can compute totals and counts, but please specify 'volunteers', 'kits', or 'shifts'."
+                return "No hours data available to compute average."
+
+        # MAX HOURS
+        if "max" in query or "largest" in query or "most hours" in query:
+            combined_hours = hours + signup_hours
+            if combined_hours:
+                return f"The maximum hours recorded in a shift or signup is {max(combined_hours)} hours."
+            else:
+                return "No hours data available to compute maximum."
+
+        # MIN HOURS
+        if "min" in query or "smallest" in query or "least hours" in query:
+            combined_hours = hours + signup_hours
+            if combined_hours:
+                return f"The minimum hours recorded in a shift or signup is {min(combined_hours)} hours."
+            else:
+                return "No hours data available to compute minimum."
+
     except Exception as e:
-        print(f"JSON lookup failed: {e}")
+        print(f"Direct analysis failed: {e}")
 
     print("Falling back to RAG...")
     rag_result = qa_chain.invoke({"query": query})
