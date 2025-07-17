@@ -1,4 +1,5 @@
 # flask_app.py
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from rag_chain import build_rag_chain, hybrid_qa
@@ -11,7 +12,9 @@ CORS(app)
 qa_chain, data_dict = build_rag_chain()
 
 if not qa_chain or not data_dict:
-    raise RuntimeError("Failed to initialize RAG chain or load JSON data.")
+    raise RuntimeError("❌ Failed to initialize RAG chain or load JSON data.")
+
+print("✅ RAG chain initialized and ready.")
 
 @app.route("/api/shifts", methods=["GET"])
 def get_shifts():
@@ -56,4 +59,5 @@ def health():
     return jsonify({"status": "ok", "time": str(os.times())})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, threaded=True)
+    port = int(os.environ.get("PORT", 5000))  # Use dynamic port on Render
+    app.run(host="0.0.0.0", port=port, threaded=True)
