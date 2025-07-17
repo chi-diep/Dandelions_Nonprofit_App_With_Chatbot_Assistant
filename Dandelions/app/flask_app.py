@@ -7,8 +7,11 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Initialize RAG chain and load JSON-based data
+# Initialize RAG chain and JSON data
 qa_chain, data_dict = build_rag_chain()
+
+if not qa_chain or not data_dict:
+    raise RuntimeError("Failed to initialize RAG chain or load JSON data.")
 
 @app.route("/api/shifts", methods=["GET"])
 def get_shifts():
