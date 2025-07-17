@@ -2,78 +2,53 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from rag_chain import build_rag_chain, hybrid_qa
-import json
 import os
 
 app = Flask(__name__)
 CORS(app)
 
-# load JSON data into memory
-data_dict = {
-    "volunteers": [],
-    "kits": [],
-    "shifts": [],
-    "signups": [],
-    "stories": []
-}
+# Initialize RAG chain and load JSON-based data
+qa_chain, data_dict = build_rag_chain()
 
-try:
-    with open('Data- JSON format/volunteers.json', 'r') as f:
-        data_dict["volunteers"] = json.load(f)
-    with open('Data- JSON format/kits.json', 'r') as f:
-        data_dict["kits"] = json.load(f)
-    with open('Data- JSON format/shifts.json', 'r') as f:
-        data_dict["shifts"] = json.load(f)
-    with open('Data- JSON format/signups_data.json', 'r') as f:
-        data_dict["signups"] = json.load(f)
-    with open('Data- JSON format/personal_stories.json', 'r') as f:
-        data_dict["stories"] = json.load(f)
-    print("Loaded all JSON data into memory.")
-except Exception as e:
-    print(f"Failed to load JSON data: {e}")
-
-# initialize RAG chain
-qa_chain, _ = build_rag_chain()
-
-@app.route("/api/shifts")
+@app.route("/api/shifts", methods=["GET"])
 def get_shifts():
-    return jsonify(data_dict["shifts"])
+    return jsonify(data_dict.get("shifts", []))
 
-@app.route("/api/kits")
+@app.route("/api/kits", methods=["GET"])
 def get_kits():
-    return jsonify(data_dict["kits"])
+    return jsonify(data_dict.get("kits", []))
 
-@app.route("/api/volunteers")
+@app.route("/api/volunteers", methods=["GET"])
 def get_volunteers():
-    return jsonify(data_dict["volunteers"])
+    return jsonify(data_dict.get("volunteers", []))
 
-@app.route("/api/signups")
+@app.route("/api/signups", methods=["GET"])
 def get_signups():
-    return jsonify(data_dict["signups"])
+    return jsonify(data_dict.get("signups", []))
 
-@app.route("/api/personal-stories")
+@app.route("/api/personal-stories", methods=["GET"])
 def get_stories():
-    return jsonify(data_dict["stories"])
+    return jsonify(data_dict.get("stories", []))
 
 @app.route("/ask", methods=["POST"])
 def ask():
     try:
         data = request.get_json(force=True)
         question = data.get("question", "").strip()
-        print(f"Incoming question: {question}")
 
         if not question:
             return jsonify({"error": "Missing question."}), 400
 
+        print(f"[QUERY] {question}")
         answer = hybrid_qa(question, qa_chain, data_dict)
-        print(f"Answer: {answer}")
-        return jsonify({"answer": answer})
+        print(f"[ANSWER] {answer}")
 
+        return jsonify({"answer": answer})
     except Exception as e:
-        print(f"Server error: {e}")
+        print(f"[ERROR] {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route("/api/health")
+@app.route("/api/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok", "time": str(os.times())})
 
