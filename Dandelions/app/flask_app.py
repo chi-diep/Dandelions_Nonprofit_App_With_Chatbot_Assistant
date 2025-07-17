@@ -40,12 +40,13 @@ def get_stories():
 def ask():
     try:
         data = request.get_json(force=True)
+        email = data.get("email", "").strip()
         question = data.get("question", "").strip()
 
-        if not question:
-            return jsonify({"error": "Missing question."}), 400
+        if not email or not question:
+            return jsonify({"error": "Email and question are required."}), 400
 
-        print(f"[QUERY] {question}")
+        print(f"[QUERY] {question} (from {email})")
         answer = hybrid_qa(question, qa_chain, data_dict)
         print(f"[ANSWER] {answer}")
 
