@@ -1,3 +1,4 @@
+import fetch from 'node-fetch'; 
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -225,6 +226,33 @@ app.get('/api/health', (req, res) => {
 
 app.use((req, res) => {
   res.status(404).json({ error: "Not Found" });
+});
+app.post('/api/ask', async (req, res) => {
+  const { email, question } = req.body;
+
+  if (!email || !question) {
+    return res.status(400).json({ error: "Email and question are required." });
+  }
+
+  // Check if user is MFA verified
+  const record = currentCodes[email];
+  if (!record || Date.now() > record.expiresAt) {
+    return res.status(403).json({ error: "Unauthorized or session expired." });
+  }
+
+  try {
+    const response = await fetch('https://your-flask-backend.onrender.com/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, question })
+    });
+
+    const result = await response.json();
+    res.json(result);
+  } catch (err) {
+    console.error("Error calling Flask RAG service:", err);
+    res.status(500).json({ error: "Failed to get answer from RAG service." });
+  }
 });
 
 app.listen(port, () => {
