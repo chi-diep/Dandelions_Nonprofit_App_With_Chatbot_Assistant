@@ -17,16 +17,13 @@ from langchain.docstore.document import Document
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 
-
-# Define base path for data
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-JSON_DIR = os.path.join(BASE_DIR, 'Data- JSON format')
-
+# JSON files are now in the same directory as this script
+JSON_DIR = os.path.dirname(__file__)
+print(f"[INFO] Loading JSON files from: {JSON_DIR}")
 
 def is_calculation_question(question: str) -> bool:
     keywords = ["total", "sum", "how many", "count", "average", "mean", "min", "max", "minimum", "maximum"]
     return any(k in question.lower() for k in keywords)
-
 
 def json_answer(question: str, data: dict) -> str:
     question = question.lower()
@@ -59,13 +56,11 @@ def json_answer(question: str, data: dict) -> str:
 
     return "Sorry, I couldn't compute that from the available data."
 
-
 def hybrid_qa(question: str, rag_chain, data: dict) -> str:
     if is_calculation_question(question):
         return json_answer(question, data)
     else:
         return rag_chain.run(question)
-
 
 def build_rag_chain():
     profiles = {}
@@ -134,7 +129,7 @@ def build_rag_chain():
         print(f"Constructed {len(profiles)} volunteer and signup profiles.")
 
     except Exception as e:
-        print(f"Failed to load or parse JSON data: {e}")
+        print(f"[ERROR] Failed to load or parse JSON data: {e}")
         return None, {}
 
     # Generate RAG-ready documents
@@ -188,8 +183,7 @@ Answer:"""
         "signups": signups
     }
 
-
-# Example CLI use
+# CLI test loop
 if __name__ == "__main__":
     rag_chain, data = build_rag_chain()
     if rag_chain:
