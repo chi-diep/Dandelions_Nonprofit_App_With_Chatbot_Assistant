@@ -1,11 +1,4 @@
-"""
-Alternate RAG implementation using JSON files.
-
-Features:
-- Direct JSON analysis (count, total, avg, max, min)
-- RAG with Ollama + Chroma for natural language Q&A
-- Hybrid QA: Automatically chooses best method based on question type
-"""
+# rag_chain.py
 
 import os
 import json
@@ -17,7 +10,6 @@ from langchain.docstore.document import Document
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 
-# JSON files are now in the same directory as this script
 JSON_DIR = os.path.dirname(__file__)
 print(f"[INFO] Loading JSON files from: {JSON_DIR}")
 
@@ -38,29 +30,26 @@ def json_answer(question: str, data: dict) -> str:
         return f"There are {len(data['shifts'])} shifts recorded."
 
     elif "total hours" in question or "sum hours" in question:
-        total_hours = sum(float(s["hours"]) for s in data["shifts"] if "hours" in s)
+        total_hours = sum(float(s.get("hours", 0)) for s in data["shifts"])
         return f"Total hours worked across all shifts: {total_hours}"
 
     elif "average hours" in question or "mean hours" in question:
-        hours = [float(s["hours"]) for s in data["shifts"] if "hours" in s]
+        hours = [float(s.get("hours", 0)) for s in data["shifts"] if "hours" in s]
         avg_hours = sum(hours) / len(hours) if hours else 0
         return f"Average hours per shift: {avg_hours:.2f}"
 
     elif "min hours" in question or "minimum hours" in question:
-        hours = [float(s["hours"]) for s in data["shifts"] if "hours" in s]
+        hours = [float(s.get("hours", 0)) for s in data["shifts"] if "hours" in s]
         return f"Minimum hours in a shift: {min(hours):.2f}" if hours else "No data available."
 
     elif "max hours" in question or "maximum hours" in question:
-        hours = [float(s["hours"]) for s in data["shifts"] if "hours" in s]
+        hours = [float(s.get("hours", 0)) for s in data["shifts"] if "hours" in s]
         return f"Maximum hours in a shift: {max(hours):.2f}" if hours else "No data available."
 
     return "Sorry, I couldn't compute that from the available data."
 
 def hybrid_qa(question: str, rag_chain, data: dict) -> str:
-    if is_calculation_question(question):
-        return json_answer(question, data)
-    else:
-        return rag_chain.run(question)
+    return json_answer(question, data) if is_calculation_question(question) else rag_chain.run(question)
 
 def build_rag_chain():
     profiles = {}
@@ -92,37 +81,43 @@ def build_rag_chain():
             print("signups_data.json not found. Skipping signups.")
 
         for v in volunteers:
-            vid = v['volunteer_id']
+            vid = v.get('volunteer_id')
+            if not vid:
+                print(f"[WARN] Volunteer entry missing volunteer_id: {v}")
+                continue
             profiles[vid] = {
-                "profile": f"Volunteer Profile:\nID: {vid}\nName: {v['first_name']} {v['last_name']}\nDOB: {v['dob']}\nEmail: {v['email']}\nAddress: {v['address']}\nTitle: {v['title']}\nDays Available: {v['days_available']}",
+                "profile": f"Volunteer Profile:\nID: {vid}\nName: {v.get('first_name')} {v.get('last_name')}\nDOB: {v.get('dob')}\nEmail: {v.get('email')}\nAddress: {v.get('address')}\nTitle: {v.get('title')}\nDays Available: {v.get('days_available')}",
                 "kits": [], "shifts": [], "stories": [], "signups": []
             }
 
         for k in kits:
-            vid = k['volunteer_id']
+            vid = k.get('volunteer_id')
             if vid in profiles:
                 profiles[vid]["kits"].append(
-                    f"Kit ID: {k['kit_id']}, Type: {k['kit_type']}, Quantity: {k['quantity']}, Date: {k['date']}, Location: {k['location']}"
+                    f"Kit ID: {k.get('kit_id')}, Type: {k.get('kit_type')}, Quantity: {k.get('quantity')}, Date: {k.get('date')}, Location: {k.get('location')}"
                 )
 
         for s in shifts:
-            vid = s['volunteer_id']
-            if vid in profiles:
-                profiles[vid]["shifts"].append(
-                    f"Shift ID: {s['shift_id']}, Title: {s['title']}, Hours: {s['hours']}, Date: {s['date']}"
-                )
+            try:
+                vid = s['volunteer_id']
+                if vid in profiles:
+                    profiles[vid]["shifts"].append(
+                        f"Shift ID: {s.get('shift_id')}, Title: {s.get('title')}, Hours: {s.get('hours')}, Date: {s.get('date')}"
+                    )
+            except KeyError as e:
+                print(f"[SHIFT ERROR] Missing field {e} in: {s}")
 
         for story in stories:
-            vid = story['volunteer_id']
+            vid = story.get('volunteer_id')
             if vid in profiles:
                 profiles[vid]["stories"].append(
-                    f"Story ID: {story['story_id']}, Related Shift: {story['related_shift_id']}, Related Kit: {story['related_kit_id']}, Text: {story['text']}"
+                    f"Story ID: {story.get('story_id')}, Related Shift: {story.get('related_shift_id')}, Related Kit: {story.get('related_kit_id')}, Text: {story.get('text')}"
                 )
 
         for signup in signups:
-            pseudo_id = f"signup_{signup['id']}"
+            pseudo_id = f"signup_{signup.get('id')}"
             profiles[pseudo_id] = {
-                "profile": f"Signup:\nID: {signup['id']}\nName: {signup['name']}\nEmail: {signup['email']}\nPhone: {signup['phone']}\nShift: {signup['shift_title']}, Date: {signup['shift_date']}, Hours: {signup['shift_hours']}\nSigned at: {signup['created_at']}",
+                "profile": f"Signup:\nID: {signup.get('id')}\nName: {signup.get('name')}\nEmail: {signup.get('email')}\nPhone: {signup.get('phone')}\nShift: {signup.get('shift_title')}, Date: {signup.get('shift_date')}, Hours: {signup.get('shift_hours')}\nSigned at: {signup.get('created_at')}",
                 "kits": [], "shifts": [], "stories": [], "signups": []
             }
 
@@ -132,11 +127,18 @@ def build_rag_chain():
         print(f"[ERROR] Failed to load or parse JSON data: {e}")
         return None, {}
 
-    # Generate RAG-ready documents
     documents = []
     for vid, data in profiles.items():
-        total_hours = sum(float(s.split("Hours:")[1].split(",")[0].strip())
-                          for s in data["shifts"] if "Hours:" in s)
+        try:
+            total_hours = sum(
+                float(s.split("Hours:")[1].split(",")[0].strip())
+                for s in data["shifts"]
+                if "Hours:" in s
+            )
+        except Exception as e:
+            print(f"[WARN] Error calculating hours for {vid}: {e}")
+            total_hours = 0
+
         content = f"{data['profile']}\nTotal hours worked across shifts: {total_hours}\n\n"
         if data["kits"]:
             content += "Kits Given:\n" + "\n".join(data["kits"]) + "\n"
@@ -183,7 +185,6 @@ Answer:"""
         "signups": signups
     }
 
-# CLI test loop
 if __name__ == "__main__":
     rag_chain, data = build_rag_chain()
     if rag_chain:
