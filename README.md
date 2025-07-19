@@ -1,5 +1,5 @@
 # Dandelions: Volunteer Management & AI Assistant  
-*A student-built web app with RAGFlow, JSON data, Streamlit, and Ollama for local AI querying*
+*A volunteer management web app with RAGFlow, JSON data, Streamlit, and Ollama for local AI querying*
 
 ## Why This Project Matters
 
