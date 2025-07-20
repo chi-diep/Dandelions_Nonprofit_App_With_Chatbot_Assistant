@@ -99,8 +99,10 @@ retriever = db.as_retriever(search_kwargs={"k": 10})
 prompt_template = PromptTemplate(
     input_variables=["context", "question"],
     template="""
-Use ONLY the context below to answer.
-If the info is not there, say: I don't know.
+You are a helpful assistant. ONLY use the context below to answer the question.
+If the answer is not present in the context, say "I don't know."
+
+NEVER guess or make up information.
 
 Context:
 {context}
@@ -133,6 +135,13 @@ def answer_with_stats(q):
     if "stories" in q.lower():
         return f"Number of personal stories: {len(stories)}"
     return "I don't know."
+
+def direct_lookup_volunteer_id(name):
+    for v in volunteers:
+        full_name = f"{v.get('first_name', '').lower()} {v.get('last_name', '').lower()}"
+        if name.lower() == full_name:
+            return v.get("volunteer_id")
+    return None
 
 def hybrid_qa(question):
     if is_stat_question(question):
