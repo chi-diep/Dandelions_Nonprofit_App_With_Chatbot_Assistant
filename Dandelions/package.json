@@ -8,7 +8,15 @@
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "keywords": ["volunteer", "express", "sendgrid", "mfa", "json", "ragflow", "streamlit"],
+  "keywords": [
+    "volunteer",
+    "express",
+    "sendgrid",
+    "mfa",
+    "json",
+    "ragflow",
+    "streamlit"
+  ],
   "author": "chi-diep",
   "license": "ISC",
   "dependencies": {
