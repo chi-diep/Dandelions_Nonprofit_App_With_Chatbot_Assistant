@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 import time
+import re
 from threading import Thread
 from flask import Flask, request, jsonify, send_from_directory
 from langchain_community.llms import Ollama
@@ -12,7 +13,6 @@ from langchain.docstore.document import Document
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
 
-# Load each JSON file from the data folder
 def load_json(path):
     try:
         with open(path, 'r', encoding='utf-8') as f:
@@ -27,7 +27,6 @@ shifts = load_json("shifts.json")
 stories = load_json("personal_stories.json")
 signups = load_json("signups_data.json")
 
-# Build a profile for each volunteer or signup
 profiles = {}
 for v in volunteers:
     vid = v.get("volunteer_id")
@@ -43,9 +42,7 @@ for s in signups:
     pseudo_id = f"signup_{sid}"
     profiles[pseudo_id] = {
         "profile": f"Signup:\nID: {sid}\nName: {s['name']}\nEmail: {s['email']}\nPhone: {s['phone']}\nShift: {s['shift_title']}, Date: {s['shift_date']}, Hours: {s['shift_hours']}\nSigned at: {s['created_at']}",
-        "kits": [],
-        "shifts": [],
-        "stories": []
+        "kits": [], "shifts": [], "stories": []
     }
 
 for k in kits:
@@ -66,7 +63,6 @@ for story in stories:
         profiles[vid]["stories"].append(
             f"Story ID: {story['story_id']}, Related Shift: {story['related_shift_id']}, Related Kit: {story['related_kit_id']}, Text: {story['text']}")
 
-# Create a document for each profile
 documents = []
 for vid, data in profiles.items():
     total_hours = 0
@@ -86,22 +82,18 @@ for vid, data in profiles.items():
         content += "Personal Stories:\n" + "\n".join(data["stories"]) + "\n"
     documents.append(Document(page_content=content))
 
-# Split text for better retrieval
 splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
 chunks = splitter.split_documents(documents)
 
-# Embed and store in Chroma
 embedder = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L12-v2")
 db = Chroma.from_documents(chunks, embedding=embedder)
 retriever = db.as_retriever(search_kwargs={"k": 10})
 
-# Build the prompt
 prompt_template = PromptTemplate(
     input_variables=["context", "question"],
     template="""
 You are a helpful assistant. ONLY use the context below to answer the question.
 If the answer is not present in the context, say "I don't know."
-
 NEVER guess or make up information.
 
 Context:
@@ -111,7 +103,6 @@ Question: {question}
 Answer:"""
 )
 
-# Manual RAG chain
 llm = Ollama(model="tinyllama")
 rag_chain = RetrievalQA.from_chain_type(
     llm=llm,
@@ -120,38 +111,77 @@ rag_chain = RetrievalQA.from_chain_type(
     input_key="query"
 )
 
-# Detect if the question is statistical
 stat_keywords = ["how many", "count", "total", "sum", "average", "mean", "min", "max"]
 def is_stat_question(q):
     return any(k in q.lower() for k in stat_keywords)
 
 def answer_with_stats(q):
-    if "volunteers" in q.lower():
-        return f"There are {len(volunteers)} volunteers."
-    if "kits" in q.lower():
-        return f"Total kits given out: {len(kits)}"
-    if "shifts" in q.lower():
-        return f"Total shifts: {len(shifts)}"
-    if "stories" in q.lower():
-        return f"Number of personal stories: {len(stories)}"
+    if "volunteers" in q: return f"There are {len(volunteers)} volunteers."
+    if "kits" in q: return f"Total kits given out: {len(kits)}"
+    if "shifts" in q: return f"Total shifts: {len(shifts)}"
+    if "stories" in q: return f"Number of personal stories: {len(stories)}"
     return "I don't know."
 
-def direct_lookup_volunteer_id(name):
-    for v in volunteers:
-        full_name = f"{v.get('first_name', '').lower()} {v.get('last_name', '').lower()}"
-        if name.lower() == full_name:
-            return v.get("volunteer_id")
-    return None
+def extract_name_and_field(question):
+    question = question.lower()
+    name_match = re.search(r"\b([a-zA-Z]+(?:\s+[a-zA-Z]+)*)\b", question)
+    field_keywords = {
+        "volunteer_id": ["volunteer id", "id"],
+        "dob": ["dob", "birthdate"],
+        "days_available": ["availability", "days available"],
+        "title": ["title", "role"],
+        "email": ["email"],
+        "address": ["address", "location"],
+        "phone": ["phone"],
+        "shift_title": ["shift title"],
+        "shift_date": ["shift date"],
+        "shift_hours": ["shift hours"],
+        "created_at": ["signed at"]
+    }
+    field_match = None
+    for field, keywords in field_keywords.items():
+        if any(k in question for k in keywords):
+            field_match = field
+            break
+    return name_match.group(0).strip().lower() if name_match else None, field_match
+
+def find_matching(data_list, name, name_keys=("first_name", "last_name")):
+    name = name.lower()
+    matches = []
+    for item in data_list:
+        full_name = " ".join(item.get(k, "") for k in name_keys).strip().lower()
+        if name in full_name:
+            matches.append(item)
+    return matches
 
 def hybrid_qa(question):
-    if is_stat_question(question):
-        return answer_with_stats(question)
-    else:
+    q = question.lower().strip()
+    if is_stat_question(q):
+        return answer_with_stats(q)
+
+    name, field = extract_name_and_field(q)
+    if name and field:
+        for dataset, name_keys, label in [
+            (volunteers, ("first_name", "last_name"), "Volunteer"),
+            (signups, ("name",), "Signup"),
+            (kits, ("volunteer_id",), "Kit"),
+            (shifts, ("volunteer_id",), "Shift")
+        ]:
+            matches = find_matching(dataset, name, name_keys)
+            if matches:
+                return "\n".join(
+                    f"[{label}] {m.get('name', m.get('volunteer_id', ''))} — {field.replace('_',' ').title()}: {m.get(field, 'Not available')}"
+                    for m in matches
+                )
+        return f"Sorry, no matching information found for '{name.title()}' and field '{field}'."
+
+    try:
         result = rag_chain.invoke({"query": question})
         return result.get("result", "I don't know.")
+    except Exception as e:
+        return f"Something went wrong with RAG: {e}"
 
-# Streamlit UI
-st.set_page_config(page_title="Dandelions RAG Assistant", page_icon="🌼")
+st.set_page_config(page_title="Dandelions RAG Assistant")
 st.title("Volunteer RAG Assistant")
 st.caption("Ask about volunteers, kits, shifts or stories")
 
